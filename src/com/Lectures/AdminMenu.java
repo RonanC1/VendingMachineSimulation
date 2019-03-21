@@ -6,6 +6,8 @@
 
 package com.Lectures;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class AdminMenu implements Menu {
@@ -64,17 +66,28 @@ public class AdminMenu implements Menu {
         switch(choice){
             case 1:
                 System.out.println("Show all quantities");
+                List<String> allProducts = vendingMachine.getAllProductsAdmin();
+                for(int i = 0; i < allProducts.size(); i++){
+                    System.out.println(convertToLocation(i) + ", " + allProducts.get(i));
+                }
                 break;
-            case 2://??????????????????????????????????
+            //To add a new product to the VendingMachine object
+            case 2:
                 System.out.println("Enter product description, price, location and cost in the format \"description,0.00,A1,10\"");
                 userInput = scanner.nextLine();
-                String pattern = "^[A-Za-z]+,\\d\\.\\d\\d,[A-Za-z][1-4],[1-8]\\d?$";;
+                //A regex pattern to ensure user input matches the format we want
+                String pattern = "^[A-Za-z]+,\\d\\.\\d\\d?,[A-Za-z][1-4],\\d?\\d$";
 
+                //if input matches oyr pattern
                 if(userInput.matches(pattern)){
+                    //Split the input string into elements of an array. The string is split on each comma
                     String[] array = userInput.split(",");
-                    Product product = new Product(array[0], Double.parseDouble(array[1]), array[2]);
+                    //create a new product object by passing the array elements holding description, price and location
+                    //Product product = new Product(array[0], Double.parseDouble(array[1]), array[2]);
 
-                    if(!vendingMachine.addProduct(product, Integer.parseInt(array[3]))){
+                    //call addProduct of the vendingMachine object, and pass the Product object and the quantity..
+                    //The method returns true or false depending on if the product was added or not
+                    if(!vendingMachine.addProduct(array[0].toUpperCase(), Double.parseDouble(array[1]), array[2].toUpperCase(), Integer.parseInt(array[3]))){
                         System.out.println(array[0] + " not added successfully");
                     }else{
                         System.out.println(array[0] + " added successfully");
@@ -83,19 +96,21 @@ public class AdminMenu implements Menu {
                 }else{
                     System.out.println("Incorrect product format.");
                 }
-
-
-                System.out.println("Adding products");
                 break;
+            //To quit admin menu
             case 7:
                 //changes boolean quit to true. This means the condition of the do while loop is met
                 //and the admin menu will close
                 System.out.println("Quitting admin mode");
                 quit = true;
                 break;
+            //To power off the machine
             case 8:
+                //Ask the user if they are sure
                 System.out.println("Power off machine. Are you sure? Y/N");
                 String answer = scanner.nextLine();
+
+                //if "Y", call powerOff() from the vendingMachine object
                 if(answer.equalsIgnoreCase("Y")) {
                     System.out.println("Powering off");
                     quit = true;
@@ -106,5 +121,39 @@ public class AdminMenu implements Menu {
                 System.out.println("Incorrect input given");
                 break;
         }
+    }
+
+    /**
+     * This method is passed the index of an element in an array.
+     * The method converts an integer to a String representing a location in the vending machine.
+     * E.g. when passed 0, "A1" is returned. When passed 4, "B1" is returned
+     */
+    public String convertToLocation(int index){
+        String location = "";
+        int letter = index/4;
+
+        switch (letter){
+            case 0:
+                location = "A";
+                break;
+            case 1:
+                location = "B";
+                break;
+            case 2:
+                location = "C";
+                break;
+            case 3:
+                location = "D";
+                break;
+            case 4:
+                location = "E";
+                break;
+            case 5:
+                location = "F";
+                break;
+        }
+
+        location += (index%4)+1;
+        return location;
     }
 }

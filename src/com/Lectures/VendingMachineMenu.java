@@ -1,13 +1,10 @@
 /**
- * ?????????????????????????????
  * This class provides a menu for the VendingMachine class.
  * The class prints a menu, takes user input and calls methods based on the user input.
  * The class implements the Menu Interface, and has an admin menu object
  */
 package com.Lectures;
 
-import java.util.ArrayList;
-import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Scanner;
 
@@ -18,8 +15,8 @@ public class VendingMachineMenu implements Menu {
 
    /**??????????????????????????????????
     * This is the constructor fot the class
-    * scanner is used to get CL input from the user
-    * @param vendingMachine is the vendingMachine object that is using this class
+    * scanner is used to get CL input from the user.
+    * @param vendingMachine is the vendingMachine object. The menu controls that object's methods
     * adminMenu is a hidden menu that has privileged functionality. It is implemented by creating a
     * new instance of the AdminClass.
     */
@@ -27,7 +24,6 @@ public class VendingMachineMenu implements Menu {
       scanner = new Scanner(System.in);
       this.vendingMachine = vendingMachine;
       this.adminMenu = new AdminMenu(vendingMachine);
-
    }
 
    /**
@@ -65,16 +61,19 @@ public class VendingMachineMenu implements Menu {
 
    /**
     * This method takes user input and calls the corresponding method by using a switch statement
-    * @param choice is the input number given by the user
+    * @param choice is the input number given by the user from the menu
     */
    private void handleInput(int choice){
 
       switch(choice){
-         case 1://???????????????????????
-            System.out.println("Show all products");
+          //Print a list of products and their prices
+         case 1:
+             //We get an arrayList of type String containing all products and their prices by calling
+             //getAllProducts(). Using a for loop, we can print each element of that list. The method
+             //convertToLocation() is also called which converts i into a location. E.g. 0 -> A1
             List<String> allProducts = vendingMachine.getAllProducts();
             for(int i = 0; i < allProducts.size(); i++){
-                System.out.println(convertToLocation(i) + ". " + allProducts.get(i));
+                System.out.println(allProducts.get(i));
             }
             break;
          case 2:
@@ -95,7 +94,9 @@ public class VendingMachineMenu implements Menu {
    }
 
 /**
- * ???????????????????????????????????
+ * This method is passed the index of an element in an array.
+ * The method converts an integer to a String representing a location in the vending machine.
+ * E.g. when passed 0, "A1" is returned. When passed 4, "B1" is returned
  */
    public String convertToLocation(int index){
        String location = "";
