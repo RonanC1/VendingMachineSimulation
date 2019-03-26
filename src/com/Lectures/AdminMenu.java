@@ -64,11 +64,13 @@ public class AdminMenu implements Menu {
         String userInput;
 
         switch(choice){
+            //To show every location and it's contents in the machine
             case 1:
-                System.out.println("Show all quantities");
+                //call getAllProductsAdmin() to return arrayList of Strings containing location, description, price, quantity
                 List<String> allProducts = vendingMachine.getAllProductsAdmin();
+                //print out each element
                 for(int i = 0; i < allProducts.size(); i++){
-                    System.out.println(convertToLocation(i) + ", " + allProducts.get(i));
+                    System.out.println(allProducts.get(i));
                 }
                 break;
             //To add a new product to the VendingMachine object

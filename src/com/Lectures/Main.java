@@ -19,5 +19,13 @@ public class Main
 
        vendingMachine.powerOn(vendingMachineMenu);
 
+      // vendingMachine.getAllProductLocations();
+
+//       for(int i = 0; i < 24; i++){
+//           if(i%4 == 0){
+//               System.out.println(i);
+//           }
+//       }
+
   }
 }

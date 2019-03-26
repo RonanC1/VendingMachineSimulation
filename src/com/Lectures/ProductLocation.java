@@ -10,12 +10,14 @@ import java.util.List;
 
 public class ProductLocation {
     private List<Product> productArrayList;
+    private String location;
 
     /**
      * Default constructor
      */
-    public ProductLocation(){
+    public ProductLocation(String location){
         productArrayList = new ArrayList<>();
+        this.location = location;
     }
 
     /**
@@ -31,6 +33,10 @@ public class ProductLocation {
      */
     public int getQuantity(){
         return productArrayList.size();
+    }
+
+    public String getLocation(){
+        return this.location;
     }
 
     /**
@@ -58,4 +64,16 @@ public class ProductLocation {
         }
         return false;
     }
+
+    /**
+     * ???????????????????????????????
+     * @param product
+     * @return
+     */
+    public boolean removeItem(Product product){
+        productArrayList.remove(product);
+        return true;
+    }
+
+
 }
