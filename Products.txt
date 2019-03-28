@@ -1,0 +1,6 @@
+Mars,1.7,A1,1
+Snickers,1.7,A2,3
+Fanta,2.0,A3,2
+coke,2.0,C1,10
+YORKIE,1.9,D1,90
+Dr.Pepper,3.0,D4,20

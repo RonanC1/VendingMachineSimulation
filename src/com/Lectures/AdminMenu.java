@@ -80,7 +80,7 @@ public class AdminMenu implements Menu {
                 System.out.println("Enter product description, price, location and cost in the format \"description,0.00,A1,10\"");
                 userInput = scanner.nextLine();
                 //A regex pattern to ensure user input matches the format we want
-                String pattern = "^[A-Za-z]+,\\d\\.\\d\\d?,[A-Za-z][1-4],\\d?\\d$";
+                String pattern = "^[A-Za-z.]+,\\d\\.\\d\\d?,[A-Za-z][1-4],\\d?\\d$";
 
                 //if input matches oyr pattern
                 if(userInput.matches(pattern)){

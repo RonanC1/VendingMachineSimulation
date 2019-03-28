@@ -38,6 +38,7 @@ public class Verification {
      */
     private void loadClients() throws FileNotFoundException {
         //create a String arrayList and assign it the return from loadFile()
+        String pattern = "^[A-Za-z0-9]+,\\S+,\\d+\\.\\d\\d?$";
         List<String> inputFiles;
         inputFiles = FileInput2.loadFile("Clients.txt");
         String[] currentFile;
@@ -45,7 +46,16 @@ public class Verification {
         //break up each String element on the "," and add a new product
         for (int i = 0; i < inputFiles.size(); i++) {
             currentFile = inputFiles.get(i).split(",");
-            clients.add(new Client(currentFile[0], currentFile[1], Double.parseDouble(currentFile[2])));
+
+            try {
+                if(inputFiles.get(i).matches(pattern)) {
+                    clients.add(new Client(currentFile[0], currentFile[1], Double.parseDouble(currentFile[2])));
+                }else{
+                    throw new VendingException("Could not successfully add " + currentFile[0] + " to the machine");
+                }
+            }catch(VendingException e){
+                System.out.println(e.getMessage());
+            }
         }
     }
 
@@ -57,15 +67,27 @@ public class Verification {
      */
     private void loadAdmins() throws FileNotFoundException{
         //create a String arrayList and assign it the return from loadFile()
+        String pattern = "^[A-Za-z0-9.]+,[A-Za-z0-9.]+$";
         List<String> inputFiles;
         inputFiles = FileInput2.loadFile("Admins.txt");
         String[] currentFile;
 
         //break up each String element on the "," and add a new product
+
         for (int i = 0; i < inputFiles.size(); i++) {
             currentFile = inputFiles.get(i).split(",");
-            admins.add(new Admin(currentFile[0], currentFile[1]));
+
+            try {
+                if (inputFiles.get(i).matches(pattern)) {
+                    admins.add(new Admin(currentFile[0], currentFile[1]));
+                } else {
+                    throw new VendingException("Could not successfully add " + currentFile[0] + " to the machine");
+                }
+            }catch(VendingException e){
+                System.out.println(e.getMessage());
+            }
         }
+
     }
 
     /**

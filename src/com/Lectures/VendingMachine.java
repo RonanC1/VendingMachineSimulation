@@ -84,7 +84,7 @@ public class VendingMachine {
      * Loads products from Products.dat into the vending machine
      */
     private void loadProducts() throws FileNotFoundException{
-        String pattern = "^[A-Za-z]+,\\d\\.\\d\\d?,[A-Za-z][1-4],\\d?\\d$";//????????????????????//
+        String pattern = "^[A-Za-z.]+,\\d\\.\\d\\d?,[A-Za-z][1-4],\\d?\\d$";//????????????????????//
         //create a String arrayList and assign it the return from loadFile()
         List<String> inputFiles;
 //        inputFiles = productsFileInput.loadFile();
@@ -93,8 +93,18 @@ public class VendingMachine {
 
         //break up each String element on the "," and add a new product
         for (int i = 0; i < inputFiles.size(); i++) {
+
             currentFile = inputFiles.get(i).split(",");
-            addProduct(currentFile[0], Double.parseDouble(currentFile[1]), currentFile[2], Integer.parseInt(currentFile[3]));
+
+            try {
+                if (inputFiles.get(i).matches(pattern)) {
+                    addProduct(currentFile[0], Double.parseDouble(currentFile[1]), currentFile[2], Integer.parseInt(currentFile[3]));
+                } else {
+                    throw new VendingException("Could not successfully add " + currentFile[0] + " to the machine");
+                }
+            }catch(VendingException e){
+                System.out.println(e.getMessage());
+            }
         }
     }
 
