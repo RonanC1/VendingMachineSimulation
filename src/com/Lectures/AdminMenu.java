@@ -6,6 +6,7 @@
 
 package com.Lectures;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -38,12 +39,13 @@ public class AdminMenu implements Menu {
         String userInput;
         do{
             quit = false;
-            System.out.println("Enter your choice\n" +
-                    "__________________\n" +
+            System.out.println("\n\t\tAdmin Mode\n" +
+                    "___________________________\n" +
+                    "Enter your choice\n" +
                     "\t1) Show product quantities\n" +
                     "\t2) Add product\n" +
-                    "\t7) Quit\n" +
-                    "\t8) Power off");
+                    "\t3) Quit\n" +
+                    "\t4) Power off");
 
             userInput = scanner.nextLine();
 
@@ -89,34 +91,40 @@ public class AdminMenu implements Menu {
 
                     //call addProduct of the vendingMachine object, and pass the Product object and the quantity..
                     //The method returns true or false depending on if the product was added or not
-                    if(!vendingMachine.addProduct(array[0].toUpperCase(), Double.parseDouble(array[1]), array[2].toUpperCase(), Integer.parseInt(array[3]))){
-                        System.out.println(array[0] + " not added successfully");
-                    }else{
+                    try {
+                        vendingMachine.addProduct(array[0].toUpperCase(), Double.parseDouble(array[1]), array[2].toUpperCase(), Integer.parseInt(array[3]));
                         System.out.println(array[0] + " added successfully");
+                    }catch (VendingException e){
+                        System.out.println(e.getMessage());
                     }
+
 
                 }else{
                     System.out.println("Incorrect product format.");
                 }
                 break;
             //To quit admin menu
-            case 7:
+            case 3:
                 //changes boolean quit to true. This means the condition of the do while loop is met
                 //and the admin menu will close
                 System.out.println("Quitting admin mode");
                 quit = true;
                 break;
             //To power off the machine
-            case 8:
+            case 4:
                 //Ask the user if they are sure
                 System.out.println("Power off machine. Are you sure? Y/N");
                 String answer = scanner.nextLine();
 
                 //if "Y", call powerOff() from the vendingMachine object
                 if(answer.equalsIgnoreCase("Y")) {
-                    System.out.println("Powering off");
+                    System.out.println("Powering off...");
                     quit = true;
-                    vendingMachine.powerOff();
+                    try {
+                        vendingMachine.powerOff();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
                 break;
             default:

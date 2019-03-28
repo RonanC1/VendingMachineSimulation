@@ -13,6 +13,15 @@ public class Client extends User {
     }
 
     protected void updateBalance(double amount){
+        if(balance < amount){
+            throw new VendingException("Not enough credit in balance.");
+        }
         balance -= amount;
+    }
+
+
+    @Override
+    public String toString(){
+        return super.toString() + "," + this.balance;
     }
 }

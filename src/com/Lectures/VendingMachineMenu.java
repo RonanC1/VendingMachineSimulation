@@ -13,12 +13,12 @@ public class VendingMachineMenu implements Menu {
     private VendingMachine vendingMachine;
     private AdminMenu adminMenu;
 
-    /**??????????????????????????????????
+    /**
      * This is the constructor fot the class
      * scanner is used to get CL input from the user.
-     * @param vendingMachine is the vendingMachine object. The menu controls that object's methods
+     * @param vendingMachine is the vendingMachine object. The menu controls that object's methods.
      * adminMenu is a hidden menu that has privileged functionality. It is implemented by creating a
-     * new instance of the AdminClass.
+     * new instance of the AdminMenu Class.
      */
     public VendingMachineMenu(VendingMachine vendingMachine){
         scanner = new Scanner(System.in);
@@ -37,11 +37,12 @@ public class VendingMachineMenu implements Menu {
         String userInput;
 
         do{
-            System.out.println("Enter your choice\n" +
-                    "__________________\n" +
+            System.out.println("\n\tVending Machine Menu\n" +
+                    "____________________________\n" +
+                    "Enter your choice\n" +
                     "\t1) Show all products\n" +
                     "\t2) Buy product\n" +
-                    "\t8) Admin Mode\n");
+                    "\t3) Admin Mode\n");
 
             //user input is assigned to a String
             userInput = scanner.nextLine();
@@ -79,26 +80,60 @@ public class VendingMachineMenu implements Menu {
             case 2:
                 //check account using verify class
                 //if false, break
+
                 String pattern = "^[A-Fa-f][1-4]$";
                 System.out.println("Enter product location in the format \"A1\"");
                 String location = scanner.nextLine();
                 //pass user details too
-                if(location.matches(pattern)) {
-                    //check is in stock
-                    //if(vendingMachine.checkIsInStock(location)) {
-                    try {
-                        vendingMachine.buyProduct(location);
-                    }catch (VendingException e){
-                        System.out.println(e.getMessage());
-                    }
-                }else{
-                    System.out.println("Incorrect product location");
+
+                double price = -1;
+                try {
+                    price = vendingMachine.getPrice(location);
+                }catch (VendingException e){
+                    System.out.println(e.getMessage());
                 }
+
+                if (location.matches(pattern) && price > -1) {
+
+                    System.out.println("Enter username: ");
+                    String username = scanner.nextLine();
+                    System.out.println("Enter password: ");
+                    String password = scanner.nextLine();
+
+                    Client client = vendingMachine.validateClient(username, password);
+
+                    //getCredentials will get user details, verify them, and return true if they are found in the Verification object
+                    if (client != null) {//////ADD CHECK BALANCE
+                        //check is in stock
+                        //if(vendingMachine.checkIsInStock(location)) {
+
+                        try {
+                            client.updateBalance(price);
+                            //if client does not have enough credit in their balance, the next line will not be executed
+                            String pInfo = vendingMachine.buyProduct(location);
+                            System.out.println(client.getUsername() + " purchased a " + pInfo);
+                        } catch (VendingException e) {
+                            System.out.println(e.getMessage());
+                        }
+                    }
+                }else {
+                        System.out.println("Username or password is incorrect.");
+                    }
                 break;
-            case 8:
+
+            case 3:
                 //Enters into adminMode by calling the displayMenu() method on the object
                 System.out.println("Admin mode");
-                adminMenu.displayMenu();
+                System.out.println("Enter username: ");
+                String username = scanner.nextLine();
+                System.out.println("Enter password: ");
+                String password = scanner.nextLine();
+
+                if(vendingMachine.validateAdmin(username, password)) {
+                    adminMenu.displayMenu();
+                }else{
+                    System.out.println("Incorrect Admin credentials");
+                }
                 break;
             //default output if the user gives incorrect input
             default:

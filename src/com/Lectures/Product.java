@@ -35,7 +35,7 @@ public class Product
      Gets the price.
      @return the price
      */
-    private double getPrice()
+    public double getPrice()
     {
         return price;
     }

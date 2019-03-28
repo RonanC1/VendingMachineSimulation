@@ -16,4 +16,9 @@ public abstract class User {
     protected String getPassword(){
         return this.password;
     }
+
+    @Override
+    public String toString() {
+        return username + "," + password;
+    }
 }
