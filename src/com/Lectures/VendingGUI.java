@@ -3,11 +3,12 @@ package com.Lectures;
 import javafx.application.Application;
 import javafx.geometry.HPos;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
+import javafx.util.Pair;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +22,7 @@ public class VendingGUI extends Application {
     private Button a2 = new Button();
 
     private static TextField textField = new TextField();
-    private Button buyProduct = new Button("Buy Product");
+    private static Button buyProductButton = new Button("Buy Product");
 
     private String productText;
 
@@ -34,6 +35,8 @@ public class VendingGUI extends Application {
         GridPane gridPane = new GridPane();
         gridPane.setStyle("-fx-background-color: #dbdbdb");
         gridPane.setAlignment(Pos.CENTER);
+        gridPane.setHgap(10);
+        gridPane.setVgap(10);
 
         //A1
         a1.setText(getNextProduct());
@@ -48,11 +51,14 @@ public class VendingGUI extends Application {
         //TextField
         textField.setEditable(false);
         gridPane.add(textField,2,4);
+        //textField.setOnKeyReleased(e -> handleKeyReleased(textField, buyProductButton));
 
-        //Buy Products
-        gridPane.add(buyProduct,2,5);
-        GridPane.setHalignment(buyProduct, HPos.CENTER);
-        buyProduct.setOnAction(e -> buyProduct(textField.getText()));
+        //Buy Products//text field must not be empty
+        gridPane.add(buyProductButton,2,5);
+        GridPane.setHalignment(buyProductButton, HPos.CENTER);
+        buyProductButton.setDisable(true);
+        //buyProductButton.setOnAction(e -> buyProduct(textField.getText()));
+        buyProductButton.setOnAction(e -> showUserSignIn());
 
         //Show all products
         gridPane.add(showProducts,0,0);
@@ -99,7 +105,7 @@ public class VendingGUI extends Application {
 //                try {
 //                    client.updateBalance(price);
 //                    //if client does not have enough credit in their balance, the next line will not be executed
-//                    String pInfo = vendingMachine.buyProduct(location);
+//                    String pInfo = vendingMachine.buyProductButton(location);
 //                    System.out.println(client.getUsername() + " purchased a " + pInfo);
 //                } catch (VendingException e) {
 //                    System.out.println(e.getMessage());
@@ -112,6 +118,7 @@ public class VendingGUI extends Application {
 
     public static void selectProduct(String text){
         textField.setText(text);
+        buyProductButton.setDisable(false);
     }
 
     static int i = 0;
@@ -128,4 +135,96 @@ public class VendingGUI extends Application {
             System.out.println(p);
         }
     }
+
+    public static void showUserSignIn(){
+
+        Dialog<Pair<String,String>> userSignIn = new Dialog<>();
+        userSignIn.setTitle("User sign in");
+        userSignIn.setHeaderText("Sign in with your user credentials");
+
+
+        GridPane gridPane = new GridPane();
+        gridPane.setAlignment(Pos.CENTER);
+        gridPane.setHgap(10);
+        gridPane.setVgap(10);
+
+        TextField nameTextField = new TextField();
+        PasswordField passwordField = new PasswordField();
+        Button login = new Button("Login");
+
+        //Username label
+        Label nameLabel = new Label("Username");
+        gridPane.add(nameLabel,0,0);
+
+        //Username text
+        gridPane.add(nameTextField,1,0);
+        //if a key is pressed, the password text field will be enabled. Login button will be disabled
+        //if the username is ever empty.
+        nameTextField.setOnKeyReleased(e -> handleKeyReleased(nameTextField,passwordField,login));
+
+        //Password label
+        Label passwordLabel = new Label("Password");
+        gridPane.add(passwordLabel,0,1);
+
+        //Password text
+        gridPane.add(passwordField,1,1);
+        passwordField.setDisable(true);
+        //if a key is pressed, the login button will be enabled
+        passwordField.setOnKeyReleased(e -> handleKeyReleased(passwordField, login));
+
+        //Login button
+        login.setDisable(true);
+        gridPane.add(login,0,2);
+
+
+        //Cancel button
+        Button cancel = new Button("Cancel");
+        gridPane.add(cancel,1,2);
+        //Dialog box technically doesn't have a close button. So the functionality needs to be added.
+        //Dialogue.close() does not work unless this button is available
+        userSignIn.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+        //now we assign the close button to a node and set it to not be visible
+        Node closeNode = userSignIn.getDialogPane().lookupButton(ButtonType.CLOSE);
+        closeNode.setVisible(false);
+        //we are using our own cancel button now because we can move it around the grid pane
+        cancel.setOnAction(e -> userSignIn.close());
+
+
+
+
+
+
+        //assign the grid pane and it's contents
+        userSignIn.getDialogPane().setContent(gridPane);
+        userSignIn.show();
+
+
+
+
+
+    }
+
+    public static void handleKeyReleased(TextField textField, Button button){
+        String text = textField.getText();
+        //assign either true or false depending on boolean returned
+        boolean disableButtons = text.isEmpty() || text.trim().isEmpty();//.trim is for white spaces
+        button.setDisable(disableButtons);
+    }
+
+    /**
+     * Handles Username events on a login page. Sets password field to enabled. Always disables login button
+     * if there is no text in the username field
+     */
+    public static void handleKeyReleased(TextField username, TextField password, Button button){
+        String text = username.getText();
+        //assign either true or false depending on boolean returned
+        boolean disableButtons = text.isEmpty() || text.trim().isEmpty();//.trim is for white spaces
+        password.setDisable(disableButtons);
+
+        //The login must be disabled if there is no text in the username field
+        if(text.isEmpty() || text.trim().isEmpty()){
+            button.setDisable(true);
+        }
+    }
+
 }

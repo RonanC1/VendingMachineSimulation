@@ -320,11 +320,7 @@ public class VendingMachine {
         return verification.validateAdmin(username, password);
     }
 
-//    public void getAllProductLocations(){
-//        for(int i = 0; i < arrayOfLocations.size(); i++){
-//            System.out.println(arrayOfLocations.get(i).getLocation());
-//        }
-//    }
+
 
 
 }
