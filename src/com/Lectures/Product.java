@@ -68,7 +68,7 @@ public class Product
      */
     public String getClientInfo()
     {
-        return location + ". " + description + " @ €" + price;
+        return location + " " + description + " @ €" + price;
     }
 
 
