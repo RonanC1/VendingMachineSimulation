@@ -1,300 +1,344 @@
 package com.Lectures;
 
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * ?????????????????????????????????????????
- * This class represents a vending machine. It has a list of all products in the machine with a corresponding list
- * the quantity of each product. It also keeps track of the amount of money in the machine, and its power status.
- * The machine also has a menu object, to print and receive information from the user
+ * This class represents a vending machine. It has a list of type ProductLocation. Each instance of productLocation can
+ * have an List of products. The machine has a power status. The class is controlled by the VendingMachine class. The
+ * class has an instance of Verification which handles loading, saving and verifying users.
  */
 
-public class VendingMachine
-{
-    //   private List<Product> products;
-//   private List<Integer> productQuantity;
+public class VendingMachine {
     private List<ProductLocation> arrayOfLocations;
     private boolean poweredOn;
-    private int maxVendingSize;
-
+    private final int maxVendingSize;
+    private char locationLetter;
+    private int locationNumber;
+    private String location;
+    private Verification verification;
 
     /**
-     * ??????????????????????????????????????
      * Constructs a VendingMachine object.
-     * Initializes an arrayList of products, an arrayList of product quantities, the cash currently in the machine
-     * and sets the vending machine to off. An instance of VendingMachineMenu is also created and this object is passed
-     * to that
+     * Initializes an arrayList of ProductLocations, and initializes maxVendingSize ProductLocation
+     * objects. Sets power status to false.
      */
-    public VendingMachine()
-    {
-//      products = new ArrayList<>();
-//      productQuantity = new ArrayList<>();
-        arrayOfLocations = new ArrayList<ProductLocation>();
+    public VendingMachine(){
+        arrayOfLocations = new ArrayList<>();
         maxVendingSize = 24;
+        //ProductLocation location field char and int
+        locationLetter = 'A';
+        locationNumber = 1;
+        //initialize each element in arrayOfLocations
         for(int i = 0; i < maxVendingSize; i++){
-            arrayOfLocations.add(new ProductLocation());
+            //this assigns a string to each location parameter
+            if(i%4 == 0 && i>0){
+                locationLetter++;
+                locationNumber = 1;
+            }
+            location = "" + locationLetter + locationNumber;
+            arrayOfLocations.add(new ProductLocation(location));
+            locationNumber++;
         }
+        verification = new Verification();
         poweredOn = false;
     }
 
-    /**?????????????????????????????????????????????
-     * This method turns the vending machine on. It then calls the vendingMachineMenu object
-     * displayMenu() method. The menu will display so long as the VendingMachine is on
+    /**
+     * This method turns the vending machine on. It is passed a vendingMachineMenu object as a parameter,
+     * then calls the displayMenu() method. The menu will display so long as the VendingMachine is on.
+     * This method also loads all products, clients and admins
      */
-    public void powerOn(VendingMachineMenu vendingMachineMenu){
+    public void powerOn(VendingMachineMenu vendingMachineMenu) throws FileNotFoundException {
         System.out.println("Vending machine is powered on");
         poweredOn = true;
+        //loads all products
+        loadProducts();
+        //loads all Admins and Clients
+        verification.loadUsers();
         vendingMachineMenu.displayMenu();
     }
 
     /**
      * This method turns the vending machine status to off. The menu will then stop displaying
      */
-    public void powerOff(){
+    public void powerOff() throws IOException {
+        saveProducts();
+        verification.saveClients();
         System.out.println("Vending machine is off");
         poweredOn = false;
     }
 
     /**
-     * returns the power status of the machine
+     * returns the power status of the machine. Both menu objects depend on the power being on
      */
     public boolean isOn(){
         return this.poweredOn;
     }
 
     /**
-     * Adds a product to the vending machine.???????????????????????????
-     * First it checks if the product exists in the machine. If not, the product will be added
-     * to products, and the corresponding element of productsQuantity will be increased. If it already
-     * exists, only the corresponding element in productsQuantity will be increased
-     * @param product the product to add
+     * Loads products from Products.dat into the vending machine
+     */
+    private void loadProducts() throws FileNotFoundException{
+        String pattern = "^[A-Za-z.]+,\\d\\.\\d\\d?,[A-Za-z][1-4],\\d?\\d$";//????????????????????//
+        //create a String arrayList and assign it the return from loadFile()
+        List<String> inputFiles;
+//        inputFiles = productsFileInput.loadFile();
+        inputFiles = FileInput2.loadFile("Products.txt");
+        String[] currentFile;
+
+        //break up each String element on the "," and add a new product
+        for (int i = 0; i < inputFiles.size(); i++) {
+
+            currentFile = inputFiles.get(i).split(",");
+
+            try {
+                if (inputFiles.get(i).matches(pattern)) {
+                    addProduct(currentFile[0], Double.parseDouble(currentFile[1]), currentFile[2], Integer.parseInt(currentFile[3]));
+                } else {
+                    throw new VendingException("Could not successfully add " + currentFile[0] + " to the machine");
+                }
+            }catch(VendingException e){
+                System.out.println(e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Saves product details from the vendingMachine to Products.dat
+     * @throws IOException
+     */
+    private void saveProducts() throws IOException {
+        List<String> productsToSave = new ArrayList<>();
+
+        for(ProductLocation productLocation : arrayOfLocations){
+            //if the quantity is 0 there is nothing in the current array list so we skip it
+            if(productLocation.getQuantity() > 0) {
+                //add a new String to productsToSave. The String contains the product objects toString(), and the quantity is also
+                //added by getting the size of the current arrayList
+                productsToSave.add(productLocation.getProductArrayList().get(0).toString() + "," + productLocation.getQuantity());
+            }
+        }
+        FileOutput.saveFile("Products.txt", productsToSave);
+    }
+
+
+
+
+
+    /**
+     * Adds a product to the vending machine.
+     * The method checks if the same Product type is in the specified location, or if that location is empty,
+     * and will add accordingly and return true. If the productLocation does not contain the same type of Product and isn't empty, the method
+     * returns false.
      * @param quantity the quantity
      */
-    public boolean addProduct(Product product, int quantity)
+
+//    public boolean addProduct(String description, double price, String location, int quantity)
+//    {
+//        //first we create a product object that will be passed to various methods
+//        Product product = new Product(description, price, location);
+//        //we get the index of the location in arrayOfLocations by calling getIndexOf()
+//        int index = getIndexOf(location);
+//        //Now we check if the location has products of the same type by calling isInLocation and passing the product
+//        //object and location
+//        //If the specified location has Product objects of the same type we add the quantity of product objects.
+//        //Or if it's an empty location, we can add them too
+//        if(isInLocation(product,location) && index > -1){
+//            arrayOfLocations.get(index).addProductToLocation(description, price, location, quantity);
+//            //update/save products
+//            return true;
+//            ///////////////////////////????????????????????????????????????????????????????????????
+//        }else if(arrayOfLocations.get(index).getProductArrayList().isEmpty() && index > -1){//???????????
+//            arrayOfLocations.get(index).addProductToLocation(description, price, location, quantity);
+//            //update/save products
+//            return true;
+//        }
+//        //Otherwise, return false
+//        return false;
+//    }
+    public boolean addProduct(String description, double price, String location, int quantity)
     {
-        //convert location from alphaNumerical to a corresponding number
-        int index = convertLocation(product.getLocation());
-        //if -1 return false
-        if(index == -1){
-            return false;
+        //first we create a product object that will be passed to various methods
+        Product product = new Product(description, price, location);
+        //we get the index of the location in arrayOfLocations by calling getIndexOf()
+        int index = getIndexOf(location);
+        //Now we check if the location has products of the same type by calling isInLocation and passing the product
+        //object and location
+        //If the specified location has Product objects of the same type we add the quantity of product objects.
+        //Or if it's an empty location, we can add them too
+        if(index > -1) {
+            if (isInLocation(product, location)) {//??????????
+                arrayOfLocations.get(index).addProductToLocation(description, price, location, quantity);
+                //update/save products
+                return true;
+                ///////////////////////////????????????????????????????????????????????????????????????
+            } else if (arrayOfLocations.get(index).getProductArrayList().isEmpty()) {//???????????
+                arrayOfLocations.get(index).addProductToLocation(description, price, location, quantity);
+                //update/save products
+                return true;
+            }
+        }else{
+            throw new VendingException(description + " could not be added to " + location);
         }
-        //check if product is in location
-        if(isInLocation(product,index)){
-            arrayOfLocations.get(index).addProductToLocation(product, quantity);
-            return true;
-        }else if(arrayOfLocations.get(index).getProductArrayList().isEmpty()){
-            arrayOfLocations.get(index).addProductToLocation(product, quantity);
-            return true;
-        }
-        //if false return false
         return false;
     }
-//    public void addProduct(Product product, int quantity)
-//    {
-//        //gets the index of the product by calling queryProduct(). If it doesn't exist,
-//        //it will return -1
-//        int index = queryProduct(product);
-//        if(index >= 0){
-//            //if it exists, we must get the current quantity in the machine, then add the new amount to that
-//            int currentQuantity = productQuantity.get(index);
-//            productQuantity.set(index, (currentQuantity + quantity));
-//        } else{
-//            products.add(product);
-//            index = queryProduct(product);
-//            productQuantity.add(quantity);
-//        }
-//    }
 
     /**
-     *
-     * @param product
-     * @param index
-     * @return
+     * This method checks if the ProductLocation in arrayOfLocations has the same product types
+     * @param product is the product to be added
+     * @param location the specified location form the user
+     * @return true or false
      */
-    private boolean isInLocation(Product product,int index){
-        if(arrayOfLocations.get(index).isInProductLocation(product)){
-            return true;
-        }else{
-            return false;
+    private boolean isInLocation(Product product,String location){
+        for(int i = 0; i < arrayOfLocations.size(); i++){
+            if(arrayOfLocations.get(i).getLocation().equalsIgnoreCase(location)) {
+                //call ProductLocation.isInProductLocation() to check if the passed product exists in the ArrayList
+                if (arrayOfLocations.get(i).isInProductLocation(product)) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
         }
+        return false;
+
     }
 
     /**
-     *
-     * @param location
-     * @return
+     * This method gets the index of the object of type ProductLocation with the same location field as
+     * the String passed to the method
+     * @param location is the location the user wishes to add a product
+     * @return the index of the object, or -1
      */
-    private int convertLocation(String location){
-        //split them up into a char and int
-        //convert char to lowercase
-        char letter = location.charAt(0);
-        letter = Character.toLowerCase(letter);
-
-        //reduce number by 1 as arrays start from 0
-        String charToNumber = "" + location.charAt(1);
-        int number = Integer.parseInt(charToNumber);
-        number -= 1;
-        //convert letter to a digit that's 0 or a multiple of 4
-        //then add that digit to int number to get our index
-        switch(letter) {
-            case 'a':
-                number += 0;
-                break;
-            case 'b':
-                number += 4;
-                break;
-            case 'c':
-                number += 8;
-                break;
-            case 'd':
-                number += 12;
-                break;
-            case 'e':
-                number += 16;
-                break;
-            case 'f':
-                number += 20;
-                break;
-
+    private int getIndexOf(String location){
+        for(ProductLocation productLocation : arrayOfLocations){
+            if(productLocation.getLocation().equalsIgnoreCase(location)){
+                return arrayOfLocations.indexOf(productLocation);
+            }
         }
-
-        return number;
+        return -1;
     }
 
     /**
-     * ????????????????????????????????????????
-     * Method checks if the products passed exists in list products. If not, it returns -1
-     * @param product is the product we are looking for
-     * @return the index of the product, or -1
+     * Method specifically for the Admin to show all and empty ProductLocations. Gets a String representation of current
+     * product descriptions and price currently in each product location.
+     * We only take the first element of the List in each ProductLocation, as each element there after will be the same.
+     * @return allProducts, an array of Strings representing products sold in this machine.
      */
-//    private int queryProduct(Product product, int location){
-//
-//        if(arrayOfLocations.get(location).getProductArrayList().contains(product)){
-//            return location;
-//        }
-//        return  -1;
-//    }
-//    private int queryProduct(Product product){
-//        if(products.contains(product)){
-//            return products.indexOf(product);
-//        }
-//        else return -1;
-//    }
-
-    /**
-     * ??????????????????????????????
-     Gets all products in the vending machine, including their location
-     @return an array of Strings representing products sold in this machine.
-     */
-    public List<String> getAllProducts()
-    {
+    public List<String> getAllProductsAdmin(){
         List<String> allProducts = new ArrayList<>();
 
         //for each ProductLocation object in arrayOfLocations
         for (ProductLocation productLocation : arrayOfLocations) {
-            //assign the first element of the arrayList within ProductLocation object the current index to product
+            //if the arrayList in productLocation is not empty, assign the first element of the arrayList
+            // within ProductLocation object of the current index to Product product
             if(!productLocation.getProductArrayList().isEmpty()) {
                 Product product = productLocation.getProductArrayList().get(0);
 
-                //if allProducts doesn't contain product then add it's toString()
+                //if allProducts doesn't contain product then add a String representation of the object
+                //getInfo() returns a String in the format description, €price. Then getQuantity() is called
+                //(the size of the ArrayList in the object) to get them amount of Products in that location
                 if (!allProducts.contains(product)) {
-                    allProducts.add(product.getInfo());
+                    allProducts.add(productLocation.getLocation() + " " + product.getInfo() + ", " + productLocation.getQuantity());
                 }
             }
+            //If the current list in the current ProductLocation object is empty, add
+            // an empty String to represent an empty space
             else{
-                allProducts.add("");
+                allProducts.add(productLocation.getLocation() + "");
             }
         }
 
         return allProducts;
     }
 
+    /**
+     * Simplified version of getAllAdminProducts. Gets a String representation all product descriptions and price currently
+     * in the vending machine. We only take the first element of the List in each ProductLocation, as each element there
+     * after will be the same. Doesn't show empty Product Locations
+     * @return allProducts, an array of Strings representing products sold in this machine.
+     */
+    public List<String> getAllProducts(){
+        List<String> allProducts = new ArrayList<>();
 
-//    public List<String> getAllProducts()
-//    {
-//        List<String> allProducts = new ArrayList<>();
-//
-//        for (Product p : products)
-//            if (!allProducts.contains(p.toString())){
-//                allProducts.add(p.toString());
-//            }
-//        return allProducts;
+        //for each ProductLocation object in arrayOfLocations
+        for (ProductLocation productLocation : arrayOfLocations) {
+            //if the arrayList in productLocation is not empty, assign the first element of the arrayList
+            // within ProductLocation object of the current index to Product product
+            if(!productLocation.getProductArrayList().isEmpty()) {
+                Product product = productLocation.getProductArrayList().get(0);
+
+                //if allProducts doesn't contain product then add a String representation of the object
+                //getClientInfo() returns a String in the format location, description, €price
+                if (!allProducts.contains(product)) {
+                    allProducts.add(product.getClientInfo());
+                }
+            }
+        }
+
+        return allProducts;
+    }
+
+    /**
+     * Allows the user to buy a product from the vending machine.
+     * @param location the product location to buy from
+     */
+    public String buyProduct(String location)
+    {
+        //for each element in the ArrayList
+        for(ProductLocation productLocation : arrayOfLocations){
+                //if the current object location equals the String passed to the method
+            if (productLocation.getLocation().equalsIgnoreCase(location)) {
+                //check that there is actually product objects in the arrayList
+                if(productLocation.getQuantity() > 0) {
+
+                    Product product = productLocation.getProductArrayList().get(0);
+                    //remove the current product by calling the object's method to remove items
+                    productLocation.removeItem(product);
+                    //save products
+                    //update/save clients
+                    return product.getInfo();
+                }else{
+                    throw new VendingException("Product not in stock");
+                }
+            }
+        }
+
+        return null;
+    }
+
+    public double getPrice(String location){
+        for(ProductLocation productLocation : arrayOfLocations){
+            if(productLocation.getLocation().equalsIgnoreCase(location)){
+
+                if(productLocation.getQuantity() > 0) {
+                    return productLocation.getProductArrayList().get(0).getPrice();
+                }else{
+                    throw new VendingException("No products at this location");
+                }
+            }
+        }
+        return -2;
+    }
+
+    public Client validateClient(String username, String password){
+       return verification.validateClient(username, password);
+    }
+
+    public boolean validateAdmin(String username, String password){
+        return verification.validateAdmin(username, password);
+    }
+
+//    public void getAllProductLocations(){
+//        for(int i = 0; i < arrayOfLocations.size(); i++){
+//            System.out.println(arrayOfLocations.get(i).getLocation());
+//        }
 //    }
 
-    /**
-     * ??????????????????????????????
-     Gets all products in the vending machine, including their location
-     @return an array of Strings representing products sold in this machine.
-     */
-//    public List<String> getAllProductsAdmin()
-//    {
-//        List<String> allProducts = new ArrayList<>();
-//
-//        for (Product p : products)
-//            if (!allProducts.contains(p.toString())){
-//                allProducts.add(p.toString());
-//            }
-//        return allProducts;
-//    }
-//    public List<String> getAllProducts()
-//    {
-//        List<String> allProducts = new ArrayList<>();
-//
-//        for (Product p : products)
-//            if (!allProducts.contains(p.toString())){
-//                allProducts.add(p.toString());
-//            }
-//        return allProducts;
-//    }
 
-    /**
-     Adds the coin to the vending machine.
-     @param c the coin to add
-     */
-//   public void addCoin(Coin c)
-//   {
-//      currentCoins.addCoin(c);
-//   }
-
-    /**
-     Buys a product from the vending machine.
-     @param p the product to buy
-     */
-//   public void buyProduct(Product p)
-//   {
-//      for (int i = 0; i < products.size(); i++)
-//      {
-//         Product prod = products.get(i);
-//         if (prod.equals(p))
-//         {
-////            double payment = currentCoins.getValue();
-////            if (p.getPrice() <= payment)
-////            {
-////               products.remove(i);
-//////               coins.addCoins(currentCoins);
-//////               currentCoins.removeAllCoins();
-////               return;
-////            }
-////            else
-////            {
-////               throw new VendingException("Insufficient money");
-////            }
-//         }
-//      }
-//      throw new VendingException("No such product");
-//   }
-
-
-
-    /**
-     Removes the money from the vending machine.
-     @return the amount of money removed
-     */
-//   public double removeMoney()
-//   {
-//      double r = coins.getValue();
-//      coins.removeAllCoins();
-//      return r;
-//   }
 }
