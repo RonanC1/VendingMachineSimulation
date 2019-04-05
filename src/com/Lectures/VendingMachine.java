@@ -320,6 +320,32 @@ public class VendingMachine {
         return verification.validateAdmin(username, password);
     }
 
+    public List<String> getAllProductsCSV(){
+        List<String> products = new ArrayList<>();
+
+        for(ProductLocation productLocation : arrayOfLocations){
+            //if the quantity is 0 there is nothing in the current array list so we skip it
+            if(productLocation.getQuantity() > 0) {
+                //add a new String to productsToSave. The String contains the product objects toString(), and the quantity is also
+                //added by getting the size of the current arrayList
+                products.add(productLocation.getProductArrayList().get(0).toString() + "," + productLocation.getQuantity());
+            }
+        }
+
+        return products;
+    }
+
+    public int getProductQuantity(String location){
+        for(ProductLocation productLocation : arrayOfLocations){
+            if(productLocation.getLocation().equalsIgnoreCase(location)){
+                return productLocation.getQuantity();
+            }
+        }
+
+        return -1;
+    }
+
+
 
 
 
