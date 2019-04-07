@@ -329,6 +329,8 @@ public class VendingMachine {
                 //add a new String to productsToSave. The String contains the product objects toString(), and the quantity is also
                 //added by getting the size of the current arrayList
                 products.add(productLocation.getProductArrayList().get(0).toString() + "," + productLocation.getQuantity());
+            }else{
+                products.add("" + "," + "0.00," + productLocation.getLocation() +  "," + productLocation.getQuantity());
             }
         }
 
@@ -344,6 +346,11 @@ public class VendingMachine {
 
         return -1;
     }
+
+    public List<ProductLocation> getArrayOfLocations(){
+        return this.arrayOfLocations;
+    }
+
 
 
 

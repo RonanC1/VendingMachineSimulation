@@ -1,16 +1,20 @@
 package com.Lectures;
 
 import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
+import javafx.scene.control.Menu;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.*;
 import javafx.stage.Stage;
 
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,12 +29,22 @@ public class VendingGUI extends Application {
     //arrayList of ProductButtons
     private static List<ProductButton> productButtons = new ArrayList<>();
 
+    private static MenuItem addProductsItem = new MenuItem();
+    private static MenuItem shutDownItem = new MenuItem();
+
+    private static boolean isInAdminMode = false;
+
     @Override
     public void start(Stage primaryStage) throws Exception {
+
         vendingMachine.powerOn();
 
         //Border Pane
         BorderPane borderPane = new BorderPane();
+
+
+
+
 
         //GRID PANE
         GridPane gridPane = new GridPane();
@@ -40,7 +54,6 @@ public class VendingGUI extends Application {
         gridPane.setVgap(10);
         //set the preferred width of each button so they aren't all different sizes
         gridPane.setPrefWidth(80);
-        gridPane.setMaxWidth(80);
 
         /////////////PRODUCTS//////////////
 
@@ -75,6 +88,17 @@ public class VendingGUI extends Application {
         gridPane.add(a3.getButton(), 3, 0);
         a3.getButton().setOnAction(e -> handleProductButtonPress(a3.getProductInfo()));
 
+        //Ar
+        ProductButton a4 = newProductButton();
+        productButtons.add(a4);
+        a4.getButton().setText(a4.getDescription());
+//        if(a4.getDescription().equalsIgnoreCase("Empty")){
+//            a4.getButton().setDisable(true);
+//        }
+        a4.getButton().setPrefWidth(gridPane.getPrefWidth());
+        gridPane.add(a4.getButton(), 4, 0);
+        a4.getButton().setOnAction(e -> handleProductButtonPress(a4.getProductInfo()));
+
 
         /////////////END OF PRODUCTS//////////////
 
@@ -88,7 +112,7 @@ public class VendingGUI extends Application {
         //Buy Products//text field must not be empty
         VBox vBox = new VBox(10);
         vBox.setStyle("-fx-background-color: #a7dcef");
-        vBox.setAlignment(Pos.CENTER);
+        vBox.setAlignment(Pos.TOP_CENTER);
         vBox.setPadding(new Insets(10));
 
         /////User sign in///////
@@ -100,6 +124,13 @@ public class VendingGUI extends Application {
         signInGridPane.setAlignment(Pos.CENTER);
         signInGridPane.setHgap(10);
         signInGridPane.setVgap(10);
+
+        //Login Icon//
+        Image loginIcon = new Image(new FileInputStream("userLoginIcon.png"));
+        ImageView imageView = new ImageView(loginIcon);
+        vBox.getChildren().add(imageView);
+        imageView.setFitHeight(150);
+        imageView.setFitWidth(150);
 
         //Username label
         Label nameLabel = new Label("Username");
@@ -130,16 +161,20 @@ public class VendingGUI extends Application {
         hBox.setPadding(new Insets (0,0,30,0));
         hBox.setAlignment(Pos.CENTER_RIGHT);
 
+
         //Login button
         login.setDisable(true);
         login.setAlignment(Pos.CENTER_RIGHT);
-        login.setOnAction(e -> verifyClient(nameTextField.getText(), passwordField.getText()));
+        //Verify user credentials. Checks if admin or customer
+        login.setOnAction(e -> verifyUser(nameTextField.getText(), passwordField.getText(),login));
         hBox.getChildren().add(0,login);
 
         //Logout button
         Button logout = new Button("Logout");
         logout.setOnAction(e -> handleLogout(nameTextField, passwordField, selectedProductInfo, buyProductButton));
         hBox.getChildren().add(1,logout);
+
+        //Add the HBox to the VBox
         vBox.getChildren().add(hBox);
 
         ///////End of User Login//////////
@@ -153,11 +188,69 @@ public class VendingGUI extends Application {
         vBox.getChildren().add(buyProductButton);
         buyProductButton.setDisable(true);
 
+        ///////////////// Admin Menu /////////////////////////
+        MenuBar menuBar = new MenuBar();
+
+        //Coloured bar
+        VBox vBox1 = new VBox();
+        vBox1.getChildren().add(menuBar);
+//        Region space = new Region();
+//        space.setPrefHeight(40);
+//        space.setStyle("-fx-background-color: #b291c7");
+//        vBox1.getChildren().add(space);
+//
+//        borderPane.setTop(vBox1);
+
+        Menu menu = new Menu();
+        menuBar.getMenus().add(menu);
+        menu.setText("Admin");
+
+//        MenuItem loginAdminItem = new MenuItem();
+//        loginAdminItem.setText("Login");
+//        menu.getItems().add(loginAdminItem);
+
+        //Admin add products
+        addProductsItem.setText("Add Products");
+        addProductsItem.setDisable(true);
+        addProductsItem.setOnAction(e -> handleAddProducts(buyProductButton, selectedProductInfo));
+        menu.getItems().add(addProductsItem);
+
+        //Admin shut down
+        shutDownItem.setText("Shut down machine");
+        shutDownItem.setDisable(true);
+        shutDownItem.setOnAction(e -> {
+            try {
+                shutDown();
+            } catch (IOException e1) {
+                createNewErrorAlert(e1.getMessage());
+            }
+        });
+        menu.getItems().add(shutDownItem);
+
         borderPane.setLeft(vBox);
         borderPane.setCenter(gridPane);
         primaryStage.setTitle("Vending Machine");
         primaryStage.setScene(new Scene(borderPane, 800, 500));
         primaryStage.show();
+
+
+
+    }
+
+    private static void verifyUser(String username, String password,Button login){
+        //checks if it's an admin
+        boolean isAdmin = vendingMachine.validateAdmin(username, password);
+
+        if(isAdmin){
+            createNewConfirmationAlert("Now in admin mode. Use the Admin tab in the toolbar to add products or turn off the vending machine");
+            isInAdminMode = true;
+            addProductsItem.setDisable(false);
+            shutDownItem.setDisable(false);
+            login.setDisable(true);
+
+        }else {
+            verifyClient(username, password);
+        }
     }
 
     /**
@@ -293,6 +386,11 @@ public class VendingGUI extends Application {
         List<String> allProducts = vendingMachine.getAllProductsCSV();
         String[] products = allProducts.get(buttonObjectCounter).split(",");
         buttonObjectCounter++;
+        for (int i = 0; i < products.length; i++){
+            if (products[i].isEmpty() || products[i].trim().isEmpty()){
+                products[i] = "Empty";
+            }
+        }
         return new ProductButton(products[0], products[1], products[2]);
     }
 
@@ -314,7 +412,34 @@ public class VendingGUI extends Application {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setContentText(message);
         alert.getButtonTypes().remove(ButtonType.CANCEL);
+        alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
         alert.show();
+    }
+
+    /**
+     * Creates a new pop up dialog box
+     * @param message is the message to be displayed
+     */
+
+    public static void createNewErrorAlert(String message){
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setContentText(message);
+        alert.getButtonTypes().remove(ButtonType.CANCEL);
+        alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
+        alert.show();
+    }
+
+    public static String createNewWarningAlert(String message){
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setContentText(message);
+        alert.getButtonTypes().add(ButtonType.YES);
+        alert.getButtonTypes().add(ButtonType.NO);
+        alert.getButtonTypes().remove(ButtonType.CANCEL);
+        alert.getButtonTypes().remove(ButtonType.OK);
+        alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
+        alert.showAndWait();
+
+        return alert.getResult().getText();
     }
 
     /**
@@ -335,8 +460,115 @@ public class VendingGUI extends Application {
     public static void handleLogout(TextField name, PasswordField password, TextField products, Button buy){
         name.clear();
         password.clear();
+        password.setDisable(true);
         products.clear();
         buy.setDisable(true);
+        if(isInAdminMode){
+            handleAdminLogout();
+        }
+    }
+
+    private static void handleAdminLogout(){
+        //System.out.println("It's in admin mode");
+        isInAdminMode = false;
+        addProductsItem.setDisable(true);
+        shutDownItem.setDisable(true);
+    }
+
+    private static void handleAddProducts(Button buy, TextField productInfo){
+        buy.setDisable(true);
+        Dialog dialog = new Dialog();
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.OK);
+        dialog.setTitle("Add products");
+        dialog.setHeaderText("Pick a product location to add products");
+
+
+        GridPane gridPane = new GridPane();
+        gridPane.setAlignment(Pos.CENTER);
+        gridPane.setHgap(10);
+        gridPane.setVgap(10);
+        //gridPane.setPrefWidth(100);
+        dialog.getDialogPane().setContent(gridPane);
+
+
+        ComboBox<String> comboBox = new ComboBox<>();
+        for(ProductButton button : productButtons){
+            comboBox.getItems().add(button.getLocation());
+        }
+
+        comboBox.setValue("Select location");
+        gridPane.add(comboBox,0,0,2,1);
+
+        Label locationLabel = new Label("Location:");
+        gridPane.add(locationLabel,0,1);
+        gridPane.setHalignment(locationLabel, HPos.CENTER);
+        TextField location = new TextField();
+        location.setEditable(false);
+        gridPane.add(location,1,1);
+
+        Label productLabel = new Label("Description:");
+        gridPane.add(productLabel,0,2);
+        gridPane.setHalignment(productLabel, HPos.CENTER);
+        TextField name = new TextField();
+        name.setEditable(false);
+        gridPane.add(name,1,2);
+
+        Label priceLabel = new Label("Price:");
+        gridPane.add(priceLabel,0,3);
+        gridPane.setHalignment(priceLabel, HPos.CENTER);
+        TextField price = new TextField();
+        price.setEditable(false);
+        gridPane.add(price,1,3);
+
+        Label quantityLabel = new Label("Quantity in stock:");
+        gridPane.add(quantityLabel,0,4);
+        gridPane.setHalignment(quantityLabel, HPos.CENTER);
+        TextField quantity = new TextField();
+        quantity.setEditable(false);
+        gridPane.add(quantity,1,4);
+
+        Spinner<Integer> spinner = new Spinner<>();
+        spinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(0,10,0));
+        spinner.setEditable(false);
+        gridPane.add(spinner,1,5);
+
+
+        comboBox.setOnAction(e -> changeAddProductFields(comboBox.getValue(),location,name,price,quantity));
+
+
+        dialog.show();
+
+
+        }
+
+    private static void changeAddProductFields(String location, TextField locationField, TextField name, TextField price, TextField quantity){
+        ProductButton productButton;
+        for(ProductButton pb : productButtons){
+            if(pb.getLocation().equalsIgnoreCase(location)){
+                productButton = pb;
+                locationField.setText(location);
+                name.setText(productButton.getDescription());
+                price.setText(productButton.getPrice());
+                quantity.setText(Integer.toString(vendingMachine.getProductQuantity(location)));
+            }
+        }
+
+
+
+    }
+
+    private static void shutDown() throws IOException{
+        String shutDown = createNewWarningAlert("Shut down vending machine. Are you sure?");
+        if(shutDown.equalsIgnoreCase("yes")){
+            try {
+                vendingMachine.powerOff();
+                Platform.exit();
+            }catch (IOException e){
+                throw new IOException(e.getMessage());
+            }
+        }else if (shutDown.equalsIgnoreCase("no")){
+            System.out.println("no");
+        }
     }
 
     /**
