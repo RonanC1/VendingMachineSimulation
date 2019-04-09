@@ -77,11 +77,12 @@ public class VendingMachineMenu implements Menu {
                     System.out.println(allProducts.get(i));
                 }
                 break;
+            //Buy Product
             case 2:
                 //check account using verify class
                 //if false, break
 
-                String pattern = "^[A-Fa-f][1-4]$";
+                String pattern = "^[A-Da-d][1-4]$";
                 System.out.println("Enter product location in the format \"A1\"");
                 String location = scanner.nextLine();
                 //pass user details too

@@ -1,7 +1,6 @@
 package com.Lectures;
 
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -29,7 +28,7 @@ public class VendingMachine {
      */
     public VendingMachine(){
         arrayOfLocations = new ArrayList<>();
-        maxVendingSize = 24;
+        maxVendingSize = 16;
         //ProductLocation location field char and int
         locationLetter = 'A';
         locationNumber = 1;
@@ -63,6 +62,15 @@ public class VendingMachine {
         vendingMachineMenu.displayMenu();
     }
 
+    public void powerOn() throws FileNotFoundException {
+        System.out.println("Vending machine is powered on");
+        poweredOn = true;
+        //loads all products
+        loadProducts();
+        //loads all Admins and Clients
+        verification.loadUsers();
+    }
+
     /**
      * This method turns the vending machine status to off. The menu will then stop displaying
      */
@@ -84,7 +92,7 @@ public class VendingMachine {
      * Loads products from Products.dat into the vending machine
      */
     private void loadProducts() throws FileNotFoundException{
-        String pattern = "^[A-Za-z.]+,\\d\\.\\d\\d?,[A-Za-z][1-4],\\d?\\d$";//????????????????????//
+        String pattern = "^[A-Za-z.]+,\\d\\.\\d\\d?,[A-Da-d][1-4],\\d?\\d$";//????????????????????//
         //create a String arrayList and assign it the return from loadFile()
         List<String> inputFiles;
 //        inputFiles = productsFileInput.loadFile();
@@ -138,29 +146,6 @@ public class VendingMachine {
      * @param quantity the quantity
      */
 
-//    public boolean addProduct(String description, double price, String location, int quantity)
-//    {
-//        //first we create a product object that will be passed to various methods
-//        Product product = new Product(description, price, location);
-//        //we get the index of the location in arrayOfLocations by calling getIndexOf()
-//        int index = getIndexOf(location);
-//        //Now we check if the location has products of the same type by calling isInLocation and passing the product
-//        //object and location
-//        //If the specified location has Product objects of the same type we add the quantity of product objects.
-//        //Or if it's an empty location, we can add them too
-//        if(isInLocation(product,location) && index > -1){
-//            arrayOfLocations.get(index).addProductToLocation(description, price, location, quantity);
-//            //update/save products
-//            return true;
-//            ///////////////////////////????????????????????????????????????????????????????????????
-//        }else if(arrayOfLocations.get(index).getProductArrayList().isEmpty() && index > -1){//???????????
-//            arrayOfLocations.get(index).addProductToLocation(description, price, location, quantity);
-//            //update/save products
-//            return true;
-//        }
-//        //Otherwise, return false
-//        return false;
-//    }
     public boolean addProduct(String description, double price, String location, int quantity)
     {
         //first we create a product object that will be passed to various methods
@@ -271,6 +256,7 @@ public class VendingMachine {
             //if the arrayList in productLocation is not empty, assign the first element of the arrayList
             // within ProductLocation object of the current index to Product product
             if(!productLocation.getProductArrayList().isEmpty()) {
+                //Product product = productLocation.getProductArrayList().get(0);
                 Product product = productLocation.getProductArrayList().get(0);
 
                 //if allProducts doesn't contain product then add a String representation of the object
@@ -334,11 +320,40 @@ public class VendingMachine {
         return verification.validateAdmin(username, password);
     }
 
-//    public void getAllProductLocations(){
-//        for(int i = 0; i < arrayOfLocations.size(); i++){
-//            System.out.println(arrayOfLocations.get(i).getLocation());
-//        }
-//    }
+    public List<String> getAllProductsCSV(){
+        List<String> products = new ArrayList<>();
+
+        for(ProductLocation productLocation : arrayOfLocations){
+            //if the quantity is 0 there is nothing in the current array list so we skip it
+            if(productLocation.getQuantity() > 0) {
+                //add a new String to productsToSave. The String contains the product objects toString(), and the quantity is also
+                //added by getting the size of the current arrayList
+                products.add(productLocation.getProductArrayList().get(0).toString() + "," + productLocation.getQuantity());
+            }else{
+                products.add("" + "," + "0.00," + productLocation.getLocation() +  "," + productLocation.getQuantity());
+            }
+        }
+
+        return products;
+    }
+
+    public int getProductQuantity(String location){
+        for(ProductLocation productLocation : arrayOfLocations){
+            if(productLocation.getLocation().equalsIgnoreCase(location)){
+                return productLocation.getQuantity();
+            }
+        }
+
+        return -1;
+    }
+
+    public List<ProductLocation> getArrayOfLocations(){
+        return this.arrayOfLocations;
+    }
+
+
+
+
 
 
 }
