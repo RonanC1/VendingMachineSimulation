@@ -1,4 +1,4 @@
-Jim,jimboy8,100.0
+Jim,jimboy8,94.6
 Tom,123res,23.57
 Robbie,lawLER,1.7
 Shep,domino/,23.55

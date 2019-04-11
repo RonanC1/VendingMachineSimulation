@@ -92,11 +92,11 @@ public class VendingMachine {
      * Loads products from Products.dat into the vending machine
      */
     private void loadProducts() throws FileNotFoundException{
-        String pattern = "^[A-Za-z.]+,\\d\\.\\d\\d?,[A-Da-d][1-4],\\d?\\d$";//????????????????????//
+        String pattern = "^[A-Za-z .-]+,\\d\\.\\d\\d?,[A-Da-d][1-4],\\d?\\d$";//????????????????????//
         //create a String arrayList and assign it the return from loadFile()
         List<String> inputFiles;
 //        inputFiles = productsFileInput.loadFile();
-        inputFiles = FileInput2.loadFile("Products.txt");
+        inputFiles = FileInput2.loadFile("Products.dat");
         String[] currentFile;
 
         //break up each String element on the "," and add a new product
@@ -131,7 +131,7 @@ public class VendingMachine {
                 productsToSave.add(productLocation.getProductArrayList().get(0).toString() + "," + productLocation.getQuantity());
             }
         }
-        FileOutput.saveFile("Products.txt", productsToSave);
+        FileOutput.saveFile("Products.dat", productsToSave);
     }
 
 

@@ -11,12 +11,17 @@ import javafx.scene.control.Menu;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
+import javafx.scene.text.Font;
+import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+
+
 
 public class VendingGUI extends Application {
     private static VendingMachine vendingMachine = new VendingMachine();
@@ -39,87 +44,69 @@ public class VendingGUI extends Application {
 
         vendingMachine.powerOn();
 
-        //Border Pane
+        Font.loadFont(
+                VendingGUI.class.getResource("digital-7.ttf").toExternalForm(),
+                10);
+
+
+        //Everything is inside the border Pane
         BorderPane borderPane = new BorderPane();
-
-
-
-
 
         //GRID PANE
         GridPane gridPane = new GridPane();
         //gridPane.setStyle("-fx-background-color: #dbdbdb");
-        gridPane.setStyle("-fx-background-color: #5b5b5b");
+        gridPane.setId("borderCenter");
         gridPane.setAlignment(Pos.CENTER);
-        gridPane.setHgap(10);
-        gridPane.setVgap(10);
+        gridPane.setHgap(5);
+        gridPane.setVgap(5);
         //set the preferred width of each button so they aren't all different sizes
-        gridPane.setPrefWidth(80);
+        //gridPane.setPrefWidth(120);
+        gridPane.setPrefSize(100,90);
 
-        /////////////PRODUCTS//////////////
-
-        //A1
-        //creates a new object of type ProductButton
-        ProductButton a1 = newProductButton();
-        //Add it to our arrayList so we can access it outside the main method
-        productButtons.add(a1);
-        //set the button text
-        a1.getButton().setText(a1.getDescription());
-        //set the width
-        a1.getButton().setPrefWidth(gridPane.getPrefWidth());
-        //add the button to our gridPane
-        gridPane.add(a1.getButton(), 1, 0);
-        a1.getButton().setStyle("-fx-background-color: #acafbb;" +
-                "-fx-text-fill: #e8e8e8;" +
-                "-fx-font-weight: bold;" +
-                "-fx-font-size: 16");
-
-        //when pressed, call handleProductButton() and call the method to return a String of "location,description,price"
-        a1.getButton().setOnAction(e -> handleProductButtonPress(a1.getProductInfo()));
+        /////////////PRODUCT BUTTONS//////////////
 
 
-        //A2
-        ProductButton a2 = newProductButton();
-        productButtons.add(a2);
-        a2.getButton().setText(a2.getDescription());
-        a2.getButton().setPrefWidth(gridPane.getPrefWidth());
-        gridPane.add(a2.getButton(), 2, 0);
-        a2.getButton().setStyle("-fx-background-color: #acafbb");
-        a2.getButton().setOnAction(e -> handleProductButtonPress(a2.getProductInfo()));
+        for(int i = 0; i < 16; i++){
+            //create a new object of type ProductButton. Add it to our arrayList so we can access it outside
+            //the main method.
+            productButtons.add(newProductButton());
+        }
 
-        //A3
-        ProductButton a3 = newProductButton();
-        productButtons.add(a3);
-        a3.getButton().setText(a3.getDescription());
-        a3.getButton().setPrefWidth(gridPane.getPrefWidth());
-        gridPane.add(a3.getButton(), 3, 0);
-        a3.getButton().setStyle("-fx-background-color: #acafbb");
-        a3.getButton().setOnAction(e -> handleProductButtonPress(a3.getProductInfo()));
+        //all our buttons are the same, so we can just use a for each loop to access them
+        int row = 0, column = 0;
+        for(ProductButton productButton : productButtons){
+            //get the button from the current ProductButton object
+            productButton.getButton().setText(productButton.getDescription());
+            //set the dimensions to the PrefSize of the gridPane
+            productButton.getButton().setPrefSize(gridPane.getPrefWidth(),gridPane.getPrefHeight());
+            //wrap the text if it's too long
+            productButton.getButton().setWrapText(true);
+            //set the text to center
+            productButton.getButton().setTextAlignment(TextAlignment.CENTER);
+            //add the button to our gridPane on the current column and row
+            gridPane.add(productButton.getButton(), column, row);
+            //set the style id of the button so we can use css from style.css
+            productButton.getButton().setId("productButton");
+            //when pressed, call handleProductButton() and call the method to return a String of "location,description,price"
+            productButton.getButton().setOnAction(e -> handleProductButtonPress(productButton.getProductInfo()));
 
-        //A4
-        ProductButton a4 = newProductButton();
-        productButtons.add(a4);
-        a4.getButton().setText(a4.getDescription());
-        a4.getButton().setPrefWidth(gridPane.getPrefWidth());
-        gridPane.add(a4.getButton(), 4, 0);
-        a4.getButton().setStyle("-fx-background-color: #acafbb");
-        a4.getButton().setOnAction(e -> handleProductButtonPress(a4.getProductInfo()));
-
-
+            //increment the column position
+            column++;
+            //when column mod 4 gives a remainder of 0
+            if(column%4 == 0 && column > 0){
+                //reset to column index 0
+                column = 0;
+                //increment our row index
+                row += 1;
+            }
+        }
         /////////////END OF PRODUCTS//////////////
-
-        //Show all products
-        gridPane.add(showProducts, 0, 0);
-        showProducts.setOnAction(e -> showAllProducts());
-
 
         ////////////Left Pane/////////////
 
         //Buy Products//text field must not be empty
         VBox vBox = new VBox(10);
-//        vBox.setStyle("-fx-background-color: #a7dcef");
-        //vBox.setStyle("-fx-background-color: #1d62c9");
-        vBox.setStyle("-fx-background-color: linear-gradient(to top, #1d62c9, #642edb)");
+        vBox.setId("borderLeft");
         vBox.setAlignment(Pos.TOP_CENTER);
         vBox.setPadding(new Insets(10));
 
@@ -133,21 +120,28 @@ public class VendingGUI extends Application {
         signInGridPane.setHgap(10);
         signInGridPane.setVgap(10);
 
-        //Login Icon//
-        Image loginIcon = new Image(new FileInputStream("userLoginIcon.png"));/////////////try catch//////////
-        ImageView imageView = new ImageView(loginIcon);
-        vBox.getChildren().add(imageView);
-        imageView.setFitHeight(150);
-        imageView.setFitWidth(150);
+
+        //set our login icon image. Surrounded in a try catch encase of an IOException
+        try {
+            Image loginIcon = new Image(new FileInputStream("userLoginIcon.png"));
+            ImageView imageView = new ImageView(loginIcon);
+            vBox.getChildren().add(imageView);
+            imageView.setFitHeight(150);
+            imageView.setFitWidth(150);
+        }catch(IOException e){
+            createNewErrorAlert(e.getMessage() + "\n\nIcon could not be loaded");
+        }
+
+
 
         //Username label
         Label nameLabel = new Label("Username");
-        nameLabel.setStyle("-fx-text-fill: #e8e8e8;" +
-                "-fx-font-weight: bold");
+        nameLabel.setId("loginLabel");
         signInGridPane.add(nameLabel, 0, 0);
 
         //Username text
         signInGridPane.add(nameTextField, 1, 0);
+        nameTextField.setId("loginTextField");
         //if a key is pressed, the password text field will be enabled. Login button will be disabled
         //if the username is ever empty.
         nameTextField.setOnKeyReleased(e -> handleKeyReleased(nameTextField, passwordField, login));
@@ -155,11 +149,13 @@ public class VendingGUI extends Application {
 
         //Password label
         Label passwordLabel = new Label("Password");
+        passwordLabel.setId("loginLabel");
         signInGridPane.add(passwordLabel, 0, 1);
 
         //Password text
         signInGridPane.add(passwordField, 1, 1);
         passwordField.setDisable(true);
+        passwordField.setId("loginTextField");
         //if a key is pressed, the login button will be enabled
         passwordField.setOnKeyReleased(e -> handleKeyReleased(passwordField, login));
 
@@ -175,8 +171,8 @@ public class VendingGUI extends Application {
 
         //Login button
         login.setDisable(true);
-        //login.setAlignment(Pos.CENTER_RIGHT);
         login.setPrefWidth(hBox.getPrefWidth());
+        login.setId("loginButton");
         //Verify user credentials. Checks if admin or customer
         login.setOnAction(e -> verifyUser(nameTextField.getText(), passwordField.getText(),login));
         hBox.getChildren().add(0,login);
@@ -184,6 +180,7 @@ public class VendingGUI extends Application {
         //Logout button
         Button logout = new Button("Logout");
         logout.setPrefWidth(hBox.getPrefWidth());
+        logout.setId("loginButton");
         logout.setOnAction(e -> handleLogout(nameTextField, passwordField, selectedProductInfo, buyProductButton));
         hBox.getChildren().add(1,logout);
 
@@ -192,13 +189,17 @@ public class VendingGUI extends Application {
 
         ///////End of User Login//////////
 
+        /////Product info and buy///////////
+
         //TextField
         selectedProductInfo.setEditable(false);
+        selectedProductInfo.setId("selectedProductTextField");
         vBox.getChildren().add(selectedProductInfo);
-        //selectedProductInfo.setOnKeyReleased(e -> handleKeyReleased(selectedProductInfo, buyProductButton));
 
-        //gridPane.add(buyProductButton,2,5);
+        //buy button
         vBox.getChildren().add(buyProductButton);
+        buyProductButton.setId("buyButton");
+        buyProductButton.setPrefSize(130,35);
         buyProductButton.setDisable(true);
 
         ///////////////// Admin Menu /////////////////////////
@@ -239,7 +240,9 @@ public class VendingGUI extends Application {
         borderPane.setLeft(vBox);
         borderPane.setCenter(gridPane);
         primaryStage.setTitle("Vending Machine");
-        primaryStage.setScene(new Scene(borderPane, 800, 500));
+        Scene scene = new Scene(borderPane, 800, 500);
+        scene.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
+        primaryStage.setScene(scene);
         primaryStage.show();
 
 
@@ -282,7 +285,8 @@ public class VendingGUI extends Application {
 
         //getCredentials will get user details, verify them, and return true if they are found in the Verification object
         if (client != null) {
-            createNewConfirmationAlert("\t\t\t\t" + name + " signed in successfully!" + "\n\n\t\t\t\tCurrent balance is €" + client.getBalance());
+            createNewConfirmationAlert("\t\t\t\t" + name + " signed in successfully!" + "\n\n\t\t\t\tCurrent balance is €" + client.getBalance() +
+                    "\n\nSelect a product to see information, and press the \"Buy product\" button to purchase that product.");
 
             //now that we have successfully logged in, enable the buy product button
             buyProductButton.setDisable(false);
@@ -317,7 +321,7 @@ public class VendingGUI extends Application {
         }
 
         //first we get the product location
-        String location = productInfo.substring(0, 2);//fix when nothing in the yoke
+        String location = productInfo.substring(0, 2);
 
         //now we get the price of that product. If there is no product in that location, thereAreProducts
         //will be false
@@ -380,16 +384,6 @@ public class VendingGUI extends Application {
         selectedProductInfo.setText(text);
     }
 
-    /**
-     * This method gets the i'th product from the vending machine and returns it to display product
-     * information on the GUI
-     */
-    static int i = 0;
-//    public static String getNextProductName(){
-//        String product = vendingMachine.getAllProducts().get(i);
-//        i++;
-//        return product;
-//    }
 
     /**
      * When called this method creates a new ProductButton object, which will contain a button,
@@ -484,15 +478,23 @@ public class VendingGUI extends Application {
      * @param buy the buy button
      */
     private static void handleLogout(TextField name, PasswordField password, TextField products, Button buy){
-        name.clear();
-        password.clear();
-        password.setDisable(true);
-        products.clear();
-        buy.setDisable(true);
-        //if it is an admin that was signed in....
-        if(isInAdminMode){
-            handleAdminLogout();
+        String user = name.getText();
+        if(user.isEmpty() || user.trim().isEmpty()){
+            createNewConfirmationAlert("No user currently signed in!");
+        }else {
+            name.clear();
+            password.clear();
+            password.setDisable(true);
+            products.clear();
+            buy.setDisable(true);
+            //if it is an admin that was signed in....
+            if (isInAdminMode) {
+                handleAdminLogout();
+            }
+
+            createNewConfirmationAlert(user + " has signed out successfully");
         }
+
     }
 
     /**
@@ -523,7 +525,6 @@ public class VendingGUI extends Application {
         gridPane.setAlignment(Pos.CENTER);
         gridPane.setHgap(10);
         gridPane.setVgap(10);
-        //gridPane.setPrefWidth(100);
         //Add the gridPane to the dialog box
         dialog.getDialogPane().setContent(gridPane);
 
@@ -583,8 +584,6 @@ public class VendingGUI extends Application {
         addProductsButton.setOnAction(e -> {
             try {
                 handleAddNewProducts(location,name,price,quantity,spinner);
-//                updateProductButton(location.getText(),name.getText(),price.getText());
-//                changeAddProductFields(location.getText(),location,name,price,quantity);
             } catch (VendingException e1) {
                 createNewErrorAlert(e1.getMessage());
             }
@@ -642,14 +641,19 @@ public class VendingGUI extends Application {
 
     }
 
+    //////////////////??????????????????????????????????????????FIX Regex and incorrect price
     private static void handleAddNewProducts(TextField location, TextField name, TextField price, TextField quantity, Spinner<Integer> spinner) throws VendingException{
         String pricePattern = "^\\d\\.\\d\\d?||\\d$";
-        //String pattern = "^[A-Za-z.]+,\\d\\.?\\d?\\d?,[A-Za-z][1-4],\\d?\\d$";
+        String namePattern = "^[A-Za-z .-]+$";
 
         if(location.getText().isEmpty() || location.getText().trim().isEmpty()){
             throw new VendingException("No location selected");
         }else if(name.getText().equalsIgnoreCase("Empty")){
-            throw new VendingException("Name can not equal \"Empty\"");
+            throw new VendingException("Product description can not equal \"Empty\"");
+        }else if(!name.getText().matches(namePattern)){
+            throw new VendingException("Product description does not match required format");
+        }else if(name.getText().isEmpty() || name.getText().trim().isEmpty()){
+            throw new VendingException("Product description cannot only contain blank spaces");
         }else if(spinner.getValue() <= 0){
             throw new VendingException("Incorrect product quantity of " + spinner.getValue() + ". Product quantity must be > 0" );
         }else if(!price.getText().matches(pricePattern) || Double.parseDouble(price.getText()) < 0.01) {
@@ -683,7 +687,7 @@ public class VendingGUI extends Application {
         }
     }
 
-    ///////////////////////ADD PRODUCTS////////////////////////
+    ///////////////////////END OF ADD PRODUCTS////////////////////////
 
     /**
      * This method prompts the user with a yes or no answer to turn off the vendingMachine, by
@@ -735,72 +739,4 @@ public class VendingGUI extends Application {
         }
     }
 
-
-//    public static void showUserSignIn(){
-//
-//        Dialog<Pair<String,String>> userSignIn = new Dialog<>();
-//        userSignIn.setTitle("User sign in");
-//        userSignIn.setHeaderText("Sign in with your user credentials");
-//
-//
-//        GridPane gridPane = new GridPane();
-//        gridPane.setAlignment(Pos.CENTER);
-//        gridPane.setHgap(10);
-//        gridPane.setVgap(10);
-//
-//        TextField nameTextField = new TextField();
-//        PasswordField passwordField = new PasswordField();
-//        Button login = new Button("Login");
-//
-//        //Username label
-//        Label nameLabel = new Label("Username");
-//        gridPane.add(nameLabel,0,0);
-//
-//        //Username text
-//        gridPane.add(nameTextField,1,0);
-//        //if a key is pressed, the password text field will be enabled. Login button will be disabled
-//        //if the username is ever empty.
-//        nameTextField.setOnKeyReleased(e -> handleKeyReleased(nameTextField,passwordField,login));
-//
-//        //Password label
-//        Label passwordLabel = new Label("Password");
-//        gridPane.add(passwordLabel,0,1);
-//
-//        //Password text
-//        gridPane.add(passwordField,1,1);
-//        passwordField.setDisable(true);
-//        //if a key is pressed, the login button will be enabled
-//        passwordField.setOnKeyReleased(e -> handleKeyReleased(passwordField, login));
-//
-//        //Login button
-//        login.setDisable(true);
-//        gridPane.add(login,0,2);
-//
-//
-//        //Cancel button
-//        Button cancel = new Button("Cancel");
-//        gridPane.add(cancel,1,2);
-//        //Dialog box technically doesn't have a close button. So the functionality needs to be added.
-//        //Dialogue.close() does not work unless this button is available
-//        userSignIn.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
-//        //now we assign the close button to a node and set it to not be visible
-//        Node closeNode = userSignIn.getDialogPane().lookupButton(ButtonType.CLOSE);
-//        closeNode.setVisible(false);
-//        //we are using our own cancel button now because we can move it around the grid pane
-//        cancel.setOnAction(e -> userSignIn.close());
-//
-//
-//
-//
-//
-//
-//        //assign the grid pane and it's contents
-//        userSignIn.getDialogPane().setContent(gridPane);
-//        userSignIn.show();
-//
-//
-//
-//
-//
-//    }
 }
