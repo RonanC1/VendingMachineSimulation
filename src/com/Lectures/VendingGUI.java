@@ -17,6 +17,8 @@ import javafx.stage.Stage;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,17 +28,14 @@ import java.util.List;
 public class VendingGUI extends Application {
     private static VendingMachine vendingMachine = new VendingMachine();
     private Button showProducts = new Button("Show Products");
-
     private static TextField selectedProductInfo = new TextField();
     private static Button buyProductButton = new Button("Buy Product");
-
     private String productText;
     //arrayList of ProductButtons
     private static List<ProductButton> productButtons = new ArrayList<>();
-
     private static MenuItem addProductsItem = new MenuItem();
     private static MenuItem shutDownItem = new MenuItem();
-
+    //boolean determines if an admin is signed in
     private static boolean isInAdminMode = false;
 
     @Override
@@ -44,6 +43,7 @@ public class VendingGUI extends Application {
 
         vendingMachine.powerOn();
 
+        //Load custom font
         Font.loadFont(
                 VendingGUI.class.getResource("digital-7.ttf").toExternalForm(),
                 10);
@@ -54,19 +54,17 @@ public class VendingGUI extends Application {
 
         //GRID PANE
         GridPane gridPane = new GridPane();
-        //gridPane.setStyle("-fx-background-color: #dbdbdb");
         gridPane.setId("borderCenter");
         gridPane.setAlignment(Pos.CENTER);
         gridPane.setHgap(5);
         gridPane.setVgap(5);
         //set the preferred width of each button so they aren't all different sizes
-        //gridPane.setPrefWidth(120);
         gridPane.setPrefSize(100,90);
 
         /////////////PRODUCT BUTTONS//////////////
 
 
-        for(int i = 0; i < 16; i++){
+        for(int i = 0; i < 20; i++){
             //create a new object of type ProductButton. Add it to our arrayList so we can access it outside
             //the main method.
             productButtons.add(newProductButton());
@@ -173,14 +171,16 @@ public class VendingGUI extends Application {
         login.setDisable(true);
         login.setPrefWidth(hBox.getPrefWidth());
         login.setId("loginButton");
-        //Verify user credentials. Checks if admin or customer
-        login.setOnAction(e -> verifyUser(nameTextField.getText(), passwordField.getText(),login));
+        //Verify user credentials when login button is clicked. Checks if admin or customer.
+        //the method is passed the text in nameTextField and passwordField, and the login button
+        login.setOnAction(e -> verifyUser(nameTextField, passwordField,login));
         hBox.getChildren().add(0,login);
 
         //Logout button
         Button logout = new Button("Logout");
         logout.setPrefWidth(hBox.getPrefWidth());
         logout.setId("loginButton");
+        //when clicked, the called method will clear the name, password and product info textFields, and disable buy product button
         logout.setOnAction(e -> handleLogout(nameTextField, passwordField, selectedProductInfo, buyProductButton));
         hBox.getChildren().add(1,logout);
 
@@ -203,16 +203,11 @@ public class VendingGUI extends Application {
         buyProductButton.setDisable(true);
 
         ///////////////// Admin Menu /////////////////////////
+        //This section creates an admin menu in the menu bar, that has items that allow the admin to add products
+        //or shut down the machine
+
         MenuBar menuBar = new MenuBar();
 
-        //Coloured bar
-//        VBox vBox1 = new VBox();
-//        vBox1.getChildren().add(menuBar);
-//        Region space = new Region();
-//        space.setPrefHeight(40);
-//        space.setStyle("-fx-background-color: #b291c7");
-//        vBox1.getChildren().add(space);
-//
         borderPane.setTop(menuBar);
 
         Menu menu = new Menu();
@@ -222,10 +217,12 @@ public class VendingGUI extends Application {
         //Admin add products
         addProductsItem.setText("Add Products");
         addProductsItem.setDisable(true);
+        //when the add products item is clicked, the called method will create a new dialog, enabling the admin to add products
         addProductsItem.setOnAction(e -> handleAddProductsDialog());
         menu.getItems().add(addProductsItem);
 
         //Admin shut down
+        //Saves the state of the machine and closes the program
         shutDownItem.setText("Shut down machine");
         shutDownItem.setDisable(true);
         shutDownItem.setOnAction(e -> {
@@ -240,7 +237,8 @@ public class VendingGUI extends Application {
         borderPane.setLeft(vBox);
         borderPane.setCenter(gridPane);
         primaryStage.setTitle("Vending Machine");
-        Scene scene = new Scene(borderPane, 800, 500);
+        Scene scene = new Scene(borderPane, 880, 550);
+        //load our css file
         scene.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
         primaryStage.setScene(scene);
         primaryStage.show();
@@ -251,43 +249,50 @@ public class VendingGUI extends Application {
 
     /**
      * Method verifies the credentials passed. First checks if they are an admin. If not, then checks if they are a client.
-     * @param username
-     * @param password
-     * @param login
+     * @param name the text from nameTextField
+     * @param pass the text from passwordField
+     * @param login the login button
      */
-    private static void verifyUser(String username, String password,Button login){
+    private static void verifyUser(TextField name, PasswordField pass,Button login){
+        String username = name.getText();
+        String password = pass.getText();
         //checks if it's an admin
         boolean isAdmin = vendingMachine.validateAdmin(username, password);
 
         if(isAdmin){
             createNewConfirmationAlert("Now in admin mode. Use the Admin drop down menu tab to add products or turn off the vending machine");
             isInAdminMode = true;
+            //enable the items in the admin menu
             addProductsItem.setDisable(false);
             shutDownItem.setDisable(false);
             login.setDisable(true);
+            name.setEditable(false);
+            pass.setEditable(false);
 
         }else {
             //Looks for the client. If the credentials are correct, the method will add a setOnAction() to the buy button
             login.setDisable(true);
-            verifyClient(username, password);
+            verifyClient(username, password, name, pass);
         }
     }
 
     /**
      * Checks the system to see if the username and password match a user. If so, the buy product button can now be used.
-     *
      * @param name        the name of the username retrieved from the textfield
      * @param password    the password of the username retrieved from the textfield
      */
-    public static void verifyClient(String name, String password) {
+    public static void verifyClient(String name, String password, TextField textField, PasswordField passwordField) {
 
         Client client = vendingMachine.validateClient(name, password);
 
         //getCredentials will get user details, verify them, and return true if they are found in the Verification object
         if (client != null) {
-            createNewConfirmationAlert("\t\t\t\t" + name + " signed in successfully!" + "\n\n\t\t\t\tCurrent balance is €" + client.getBalance() +
+            NumberFormat formatter = new DecimalFormat("#0.00");
+            createNewConfirmationAlert("\t\t\t\t" + name + " signed in successfully!" + "\n\n\t\t\t\tCurrent balance is €" + formatter.format(client.getBalance()) +
                     "\n\nSelect a product to see information, and press the \"Buy product\" button to purchase that product.");
 
+            textField.setEditable(false);
+            passwordField.setEditable(false);
             //now that we have successfully logged in, enable the buy product button
             buyProductButton.setDisable(false);
             //when the buyProductButton is clicked, buyProduct() will be called, it will throw an exception if there
@@ -308,7 +313,6 @@ public class VendingGUI extends Application {
 
     /**
      * buys the selected product from the vending machine. This method is called from verifyClient().
-     *
      * @param client      is the user purchasing the item
      * @param productInfo is the product's toString()
      */
@@ -342,7 +346,8 @@ public class VendingGUI extends Application {
                 //if client does not have enough credit in their balance, the following lines will not be executed,
                 //instead jumping to the catch clause.
                 String pInfo = vendingMachine.buyProduct(location);
-                createNewConfirmationAlert("\t\t\t\t" + client.getUsername() + " purchased a " + pInfo + "\n\n\t\t\t\tBalance = €" + client.getBalance());
+                NumberFormat formatter = new DecimalFormat("#0.00");
+                createNewConfirmationAlert("\t\t\t\t" + client.getUsername() + " purchased a " + pInfo + "\n\n\t\t\t\tBalance = €" + formatter.format(client.getBalance()));
                 //clears the label displaying selected product info
                 selectedProductInfo.clear();
                 //updates the corresponding product button that was pressed. Changes that button's text to "Empty" if there are no more products left
@@ -380,7 +385,7 @@ public class VendingGUI extends Application {
      * entered into the text field selectedProductInfo. This allows that product to then be purchased.
      * @param text
      */
-    public static void changeSelectedProduct(String text){
+    private static void changeSelectedProduct(String text){
         selectedProductInfo.setText(text);
     }
 
@@ -393,7 +398,7 @@ public class VendingGUI extends Application {
      * int buttonObjectCounter decides what element of the array is to be selected
      */
     private static int buttonObjectCounter = 0;
-    public static ProductButton newProductButton(){
+    private static ProductButton newProductButton(){
         List<String> allProducts = vendingMachine.getAllProductsCSV();
         String[] products = allProducts.get(buttonObjectCounter).split(",");
         buttonObjectCounter++;
@@ -403,15 +408,6 @@ public class VendingGUI extends Application {
             }
         }
         return new ProductButton(products[0], products[1], products[2]);
-    }
-
-    public static void showAllProducts(){
-        List<String> products = new ArrayList<>();
-        products = vendingMachine.getAllProducts();
-
-        for(String p:products){
-            System.out.println(p);
-        }
     }
 
     /**
@@ -442,7 +438,7 @@ public class VendingGUI extends Application {
 
     /**
      * Creates a new warning dialog box. Method returns the user confirmation (Yes/No)from the
-     * dialogPane as a String.
+     * dialogPane as a String. Used when admin is shutting down machine
      * @param message is the message to be displayed
      * @return the users button choice
      */
@@ -483,8 +479,10 @@ public class VendingGUI extends Application {
             createNewConfirmationAlert("No user currently signed in!");
         }else {
             name.clear();
+            name.setEditable(true);
             password.clear();
             password.setDisable(true);
+            password.setEditable(true);
             products.clear();
             buy.setDisable(true);
             //if it is an admin that was signed in....
@@ -510,12 +508,12 @@ public class VendingGUI extends Application {
 
     //////////////////////////////ADD PRODUCTS/////////////////////////////
     /**
-     * This method creates a new Dialog for the user to interact with and add products
+     * This method creates a new Dialog for the admin to interact with and add products
      */
     private static void handleAddProductsDialog(){
         //Creating a new Dialog object which will have a TextField objects etc added to it
         Dialog dialog = new Dialog();
-        dialog.getDialogPane().getButtonTypes().add(ButtonType.OK);
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.CANCEL);
         dialog.setTitle("Add products");
         dialog.setHeaderText("Pick a product location to re-stock products or, pick\nan empty location to add a new product");
 
@@ -536,36 +534,45 @@ public class VendingGUI extends Application {
             comboBox.getItems().add(button.getLocation());
         }
 
+        //List of locations
         comboBox.setValue("Select location");
         //allow for span of two columns
         gridPane.add(comboBox,0,0,2,1);
 
+        //Location label
         Label locationLabel = new Label("Location:");
         gridPane.add(locationLabel,0,1);
         gridPane.setHalignment(locationLabel, HPos.CENTER);
+        //Location textField
         TextField location = new TextField();
         location.setEditable(false);
         gridPane.add(location,1,1);
 
+        //Description label
         Label productLabel = new Label("Description:");
         gridPane.add(productLabel,0,2);
         gridPane.setHalignment(productLabel, HPos.CENTER);
+        //Description textField
         TextField name = new TextField();
         name.setEditable(false);
         name.setStyle("-fx-border-color: transparent");
         gridPane.add(name,1,2);
 
+        //Price label
         Label priceLabel = new Label("Price:");
         gridPane.add(priceLabel,0,3);
         gridPane.setHalignment(priceLabel, HPos.CENTER);
+        //Price textField
         TextField price = new TextField();
         price.setEditable(false);
         price.setStyle("-fx-border-color: transparent");
         gridPane.add(price,1,3);
 
+        //Quantity in stock label
         Label quantityLabel = new Label("Quantity in stock:");
         gridPane.add(quantityLabel,0,4);
         gridPane.setHalignment(quantityLabel, HPos.CENTER);
+        //Quantity in stock textField
         TextField quantity = new TextField();
         quantity.setEditable(false);
         gridPane.add(quantity,1,4);
@@ -577,10 +584,12 @@ public class VendingGUI extends Application {
         spinner.setEditable(false);
         gridPane.add(spinner,1,5);
 
+        //Add button to add the input
         Button addProductsButton = new Button("Add");
         gridPane.add(addProductsButton,1,6);
         addProductsButton.setPrefWidth(80);
         gridPane.setHalignment(addProductsButton, HPos.RIGHT);
+        //adds the new product / updates current product quantity if product already exists
         addProductsButton.setOnAction(e -> {
             try {
                 handleAddNewProducts(location,name,price,quantity,spinner);
@@ -589,20 +598,17 @@ public class VendingGUI extends Application {
             }
         });
 
-
-
         //when an item is selected from the combo box, each respective TextField will change
         comboBox.setOnAction(e -> changeAddProductFields(comboBox.getValue(),location,name,price,quantity));
 
         dialog.show();
-
-
         }
 
     /**
      * This method is called by handleAddProductsDialog. The method finds the ProductButton object with the same location passed
      * as a parameter, in ArrayList buttons. Each textField passed has its text changed to corresponding values from the
      * ProductButton object.
+     * If the selected location is empty, the description and price textField will have a red border
      * @param location is the location of the product chosen from a combo box
      * @param locationField is the displayed location
      * @param name displayed product name
@@ -618,8 +624,10 @@ public class VendingGUI extends Application {
                 if(pb.getDescription().equalsIgnoreCase("Empty") && vendingMachine.getProductQuantity(location) == 0){
                     name.setEditable(true);
                     price.setEditable(true);
-                    name.setStyle("-fx-border-color: #ea4335");
-                    price.setStyle("-fx-border-color: #ea4335");
+                    name.setStyle("-fx-border-color: Red");
+                    price.setStyle("-fx-border-color: Red");
+                    name.setOnKeyReleased(e -> handleAddProductsTextKeyRelease(name, "name"));
+                    price.setOnKeyReleased(e -> handleAddProductsTextKeyRelease(price, "price"));
                 }else{
                     //otherwise, set the borders back to transparent for a seamless transition, and set the textFields to un-editable
                     name.setStyle("-fx-border-color: transparent");
@@ -628,6 +636,7 @@ public class VendingGUI extends Application {
                     price.setEditable(false);
                 }
 
+                //sets appropriate  textFields to their values
                 productButton = pb;
                 locationField.setText(location);
                 name.setText(productButton.getDescription());
@@ -636,13 +645,14 @@ public class VendingGUI extends Application {
 
             }
         }
-
-
-
     }
 
-    //////////////////??????????????????????????????????????????FIX Regex and incorrect price
+    /**
+     * This method verifies user input when they are trying to add a new product to an empty location.
+     * @throws VendingException
+     */
     private static void handleAddNewProducts(TextField location, TextField name, TextField price, TextField quantity, Spinner<Integer> spinner) throws VendingException{
+        //Regexs used to check if user input matches what we want
         String pricePattern = "^\\d\\.\\d\\d?||\\d$";
         String namePattern = "^[A-Za-z .-]+$";
 
@@ -659,6 +669,7 @@ public class VendingGUI extends Application {
         }else if(!price.getText().matches(pricePattern) || Double.parseDouble(price.getText()) < 0.01) {
             throw new VendingException("Incorrect price format. Price of item must be less than €10 and greater than €0.01, and follow the format \"1\", \"1.1\" or \"1.11\"");
         } else {
+            //if everything matches, try to add the product with vendingMachine.addProduct(). Method returns true if the product was added successfully
             try{
                 boolean success = vendingMachine.addProduct(name.getText(),Double.parseDouble(price.getText()),location.getText(),spinner.getValue());
                 if(success){
@@ -669,21 +680,57 @@ public class VendingGUI extends Application {
                     updateProductButton(location.getText(),name.getText(),price.getText());
                     //update the text fields in the add products dialog to display new information
                     changeAddProductFields(location.getText(),location,name,price,quantity);
-                    throw new VendingException(value + " " + name.getText() + " @ €" + price.getText() + " added successfully");
+                    throw new VendingException(value + " " + name.getText() + " @ €" + price.getText() + " added successfully to " + location.getText());
                 }
             }catch(VendingException e){
-                ////////////////////////CHANGE TO INFORMATION
                 throw new VendingException(e.getMessage());
             }
         }
     }
 
+    /**
+     * This method updates the text of a button representing a product. When empty, the text is changed to "Empty"
+     * @param location location of product
+     * @param description the new description
+     * @param price the new price
+     */
     private static void updateProductButton(String location, String description,String price){
         for(ProductButton pb : productButtons){
             if(pb.getLocation().equalsIgnoreCase(location)){
                 pb.setDescription(description);
                 pb.setPrice(price);
+                pb.getButton().setText(description);
             }
+        }
+    }
+
+    /**
+     * This method is for when the admin is trying to add a new product to an empty location. The colour of the description and
+     * price fields will change to red or green depending on if the input meets our requirements
+     * @param textField the textfield the user is typing in
+     * @param choice determines whether its the price or description label
+     */
+    private static void handleAddProductsTextKeyRelease(TextField textField, String choice){
+        String text = textField.getText();
+        String namePattern = "^[A-Za-z .-]+$";
+        String pricePattern = "^\\d\\.\\d\\d?||\\d$";
+
+        //css styling assigned to Strings
+        String red = "-fx-border-color: Red;" +
+                "-fx-focus-color:rgba(255,0,0,1.2);";
+        String green = "-fx-border-color: #00ff00;" +
+                "-fx-focus-color:rgba(0,255,0,1.2);";
+
+        if(choice.equalsIgnoreCase("name") && text.matches(namePattern) && !text.isEmpty() && !text.trim().isEmpty() && !text.equalsIgnoreCase("empty")){
+            textField.setStyle(green);
+        }else if(choice.equalsIgnoreCase("price") && text.matches(pricePattern)  && !text.isEmpty() && !text.trim().isEmpty()){
+            if(Double.parseDouble(text) > 0){
+                textField.setStyle(green);
+            }else{
+                textField.setStyle(red);
+            }
+        } else{
+            textField.setStyle(red);
         }
     }
 
@@ -716,7 +763,7 @@ public class VendingGUI extends Application {
      * @param textField is the text field we are checking for text
      * @param button is the button we want to disable/ enable
      */
-    public static void handleKeyReleased(TextField textField, Button button){
+    private static void handleKeyReleased(TextField textField, Button button){
         String text = textField.getText();
         //assign either true or false depending on boolean returned
         boolean disableButtons = text.isEmpty() || text.trim().isEmpty();//.trim is for white spaces
@@ -727,7 +774,7 @@ public class VendingGUI extends Application {
      * Handles Username events on a login page. Sets password field to enabled. Always disables login button
      * if there is no text in the username field
      */
-    public static void handleKeyReleased(TextField username, TextField password, Button button){
+    private static void handleKeyReleased(TextField username, TextField password, Button button){
         String text = username.getText();
         //assign either true or false depending on boolean returned
         boolean disableButtons = text.isEmpty() || text.trim().isEmpty();//.trim is for white spaces

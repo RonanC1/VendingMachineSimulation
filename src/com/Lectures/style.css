@@ -70,13 +70,10 @@
 }
 
 #borderLeft{
-        /*-fx-background-color: linear-gradient(to top, #1d62c9, #642edb);*/
         -fx-background-color: linear-gradient(to top, #2962b9, #702eb1);
-
 }
 
 #borderCenter{
-        /*-fx-background-color: #dbdbdb;*/
         -fx-background-color: #5b5b5b;
 }
 
