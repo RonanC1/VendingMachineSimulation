@@ -12,6 +12,8 @@ public class VendingMachineMenu implements Menu {
     private Scanner scanner;
     private VendingMachine vendingMachine;
     private AdminMenu adminMenu;
+    private boolean isLoggedIn;
+    private Client client;
 
     /**
      * This is the constructor fot the class
@@ -24,6 +26,9 @@ public class VendingMachineMenu implements Menu {
         scanner = new Scanner(System.in);
         this.vendingMachine = vendingMachine;
         this.adminMenu = new AdminMenu(vendingMachine);
+        this.isLoggedIn = false;
+        this.client = null;
+
     }
 
     /**
@@ -41,8 +46,9 @@ public class VendingMachineMenu implements Menu {
                     "____________________________\n" +
                     "Enter your choice\n" +
                     "\t1) Show all products\n" +
-                    "\t2) Buy product\n" +
-                    "\t3) Admin Mode\n");
+                    "\t2) Login / Logout\n" +
+                    "\t3) Buy product\n" +
+                    "\t4) Admin Mode\n");
 
             //user input is assigned to a String
             userInput = scanner.nextLine();
@@ -54,7 +60,7 @@ public class VendingMachineMenu implements Menu {
                 int choice = Integer.parseInt(userInput);
                 handleInput(choice);
             }else {
-                System.out.println("Please enter a selection, between 1 and 8 inclusive");
+                System.out.println("Please enter a selection, between 1 and 4 inclusive");
             }
 
         }while(vendingMachine.isOn());
@@ -65,7 +71,6 @@ public class VendingMachineMenu implements Menu {
      * @param choice is the input number given by the user from the menu
      */
     private void handleInput(int choice){
-
         switch(choice){
             //Print a list of products and their prices
             case 1:
@@ -77,15 +82,43 @@ public class VendingMachineMenu implements Menu {
                     System.out.println(allProducts.get(i));
                 }
                 break;
-            //Buy Product
+            //Login / Logout
             case 2:
+                if(!isLoggedIn) {
+                    System.out.println("Enter username: ");
+                    String username = scanner.nextLine();
+                    System.out.println("Enter password: ");
+                    String password = scanner.nextLine();
+
+                    client = vendingMachine.validateClient(username, password);
+
+                    //getCredentials will get user details, verify them, and return true if they are found in the Verification object
+                    if (client != null) {//////ADD CHECK BALANCE
+                        isLoggedIn = true;
+                        System.out.println(client.getUsername() + " logged in. Your balance is €" + client.getBalance());
+
+
+                    } else {
+                        System.out.println("Username or password is incorrect.");
+                    }
+                }else {
+                    isLoggedIn = false;
+                    System.out.println(client.getUsername() + " logged out successfully.");
+                }
+                break;
+            //Buy Product
+            case 3:
                 //check account using verify class
                 //if false, break
+
+                if(!isLoggedIn){
+                    System.out.println("No user currently logged in. Log in to purchase a product");
+                    break;
+                }
 
                 String pattern = "^[A-Da-d][1-4]$";
                 System.out.println("Enter product location in the format \"A1\"");
                 String location = scanner.nextLine();
-                //pass user details too
 
                 double price = -1;
                 try {
@@ -96,35 +129,19 @@ public class VendingMachineMenu implements Menu {
 
                 if (location.matches(pattern) && price > -1) {
 
-                    System.out.println("Enter username: ");
-                    String username = scanner.nextLine();
-                    System.out.println("Enter password: ");
-                    String password = scanner.nextLine();
-
-                    Client client = vendingMachine.validateClient(username, password);
-
-                    //getCredentials will get user details, verify them, and return true if they are found in the Verification object
-                    if (client != null) {//////ADD CHECK BALANCE
-                        //check is in stock
-                        //if(vendingMachine.checkIsInStock(location)) {
-
-                        try {
-                            client.updateBalance(price);
-                            //if client does not have enough credit in their balance, the next line will not be executed
-                            String pInfo = vendingMachine.buyProduct(location);
-                            System.out.println(client.getUsername() + " purchased a " + pInfo);
-                        } catch (VendingException e) {
-                            System.out.println(e.getMessage());
-                        }
+                    try {
+                        client.updateBalance(price);
+                        //if client does not have enough credit in their balance, the next line will not be executed
+                        String pInfo = vendingMachine.buyProduct(location);
+                        System.out.println(client.getUsername() + " purchased a " + pInfo + "\nYour balance is €" + client.getBalance());
+                    } catch (VendingException e) {
+                        System.out.println(e.getMessage());
                     }
-                }else {
-                        System.out.println("Username or password is incorrect.");
-                    }
+                }
                 break;
-
-            case 3:
+            //Admin mode
+            case 4:
                 //Enters into adminMode by calling the displayMenu() method on the object
-                System.out.println("Admin mode");
                 System.out.println("Enter username: ");
                 String username = scanner.nextLine();
                 System.out.println("Enter password: ");

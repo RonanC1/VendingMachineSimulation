@@ -37,10 +37,10 @@ public class Verification {
      * clients arrayList
      */
     private void loadClients() throws FileNotFoundException {
-        //create a String arrayList and assign it the return from loadFile()
-        String pattern = "^[A-Za-z0-9]+,\\S+,\\d+\\.\\d\\d?$";
+        //create a String arrayList and assign it the return from loadFile()\d+\.\d\d?
+        String pattern = "^[A-Za-z0-9]+,\\S+,\\d+\\.\\d\\d?$";//
         List<String> inputFiles;
-        inputFiles = FileInput2.loadFile("Clients.txt");
+        inputFiles = FileInput.loadFile("Clients.dat");
         String[] currentFile;
 
         //break up each String element on the "," and add a new product
@@ -69,7 +69,7 @@ public class Verification {
         //create a String arrayList and assign it the return from loadFile()
         String pattern = "^[A-Za-z0-9.]+,[A-Za-z0-9.]+$";
         List<String> inputFiles;
-        inputFiles = FileInput2.loadFile("Admins.txt");
+        inputFiles = FileInput.loadFile("Admins.dat");
         String[] currentFile;
 
         //break up each String element on the "," and add a new product
@@ -92,7 +92,7 @@ public class Verification {
 
     /**
      * Saves all updated client objects by adding each object's .toString() to a new ArrayList outputFiles.
-     * outputFiles is passed the static method FileOutput.saveFile(), which writes to Clients.txt by calling .
+     * outputFiles is passed the static method FileOutput.saveFile(), which writes to Clients.dat by calling .
      * @throws IOException
      */
     public void saveClients() throws IOException {
@@ -100,9 +100,12 @@ public class Verification {
         for(Client client : clients){
             outputFiles.add(client.toString());
         }
-        FileOutput.saveFile("Clients.txt",outputFiles);
+        FileOutput.saveFile("Clients.dat",outputFiles);
     }
 
+    /**
+     * if the passed username and password match a Client object in clients, return that object. Else, return null
+     */
     public Client validateClient(String username, String password){
         for(Client client : clients){
             if(username.equalsIgnoreCase(client.getUsername()) && password.equals(client.getPassword())){
@@ -112,6 +115,9 @@ public class Verification {
         return null;
     }
 
+    /**
+     * if the passed username and password match a Admin object in admins, return that object. Else, return null
+     */
     public boolean validateAdmin(String username, String password){
         for(Admin admin : admins){
             if(username.equalsIgnoreCase(admin.getUsername()) && password.equals(admin.getPassword())){
@@ -135,6 +141,9 @@ public class Verification {
         }
     }
 
+    /**
+     * Adds a new Client object to clients
+     */
     public void addTo(String name,String password, Double balance){
         clients.add(new Client(name,password,balance));
     }

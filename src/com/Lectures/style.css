@@ -1,0 +1,84 @@
+#productButton{
+        -fx-background-color: #acafbb;
+        -fx-text-fill: #e8e8e8;
+        -fx-font-weight: bold;
+        -fx-font-size: 15;
+        -fx-font-family: "Arial";
+        -fx-focus-color:rgba(163,71,255,1.2);
+}
+
+#productButton:hover {
+    -fx-background-color: linear-gradient(to bottom, #2962b9, #702eb1);
+    -fx-scale-y: 1.1;
+    -fx-scale-x: 1.1;
+}
+
+#productButton:pressed {
+    -fx-scale-y: 0.95;
+    -fx-scale-x: 0.95;
+}
+
+#loginLabel{
+        -fx-text-fill: #e8e8e8;
+        -fx-font-weight: bold;
+        -fx-font-size: 14;
+        -fx-font-family: "Arial";
+}
+
+#loginTextField{
+        -fx-faint-focus-color: transparent;
+        -fx-focus-color:rgba(163,71,255,1.2);
+}
+
+#loginButton{
+        -fx-font-weight: bold;
+        -fx-font-size: 13;
+        -fx-font-family: "Arial";
+        -fx-text-fill: "565656";
+        -fx-set-border-color: #baf930;
+}
+
+#loginButton:hover {
+    -fx-background-color: #acafbb;
+    -fx-text-fill: white;
+    -fx-scale-y: 1.05;
+    -fx-scale-x: 1.05;
+}
+
+#loginButton:pressed {
+    -fx-scale-y: 0.9;
+    -fx-scale-x: 0.9;
+}
+
+#buyButton{
+        -fx-font-weight: bold;
+        -fx-font-size: 15;
+        -fx-font-family: "Arial";
+        -fx-text-fill: "565656";
+}
+
+#buyButton:hover {
+    -fx-background-color: #acafbb;
+    -fx-text-fill: white;
+    -fx-scale-y: 1.05;
+    -fx-scale-x: 1.05;
+}
+
+#buyButton:pressed {
+    -fx-scale-y: 0.9;
+    -fx-scale-x: 0.9;
+}
+
+#borderLeft{
+        -fx-background-color: linear-gradient(to top, #2962b9, #702eb1);
+}
+
+#borderCenter{
+        -fx-background-color: #5b5b5b;
+}
+
+#selectedProductTextField{
+        -fx-font-weight: bold;
+        -fx-font-size: 26;
+        -fx-font-family: "digital-7";
+}

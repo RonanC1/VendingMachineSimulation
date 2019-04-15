@@ -15,10 +15,6 @@ import java.util.List;
 public class VendingMachine {
     private List<ProductLocation> arrayOfLocations;
     private boolean poweredOn;
-    private final int maxVendingSize;
-    private char locationLetter;
-    private int locationNumber;
-    private String location;
     private Verification verification;
 
     /**
@@ -28,10 +24,10 @@ public class VendingMachine {
      */
     public VendingMachine(){
         arrayOfLocations = new ArrayList<>();
-        maxVendingSize = 16;
+        int maxVendingSize = 20;
         //ProductLocation location field char and int
-        locationLetter = 'A';
-        locationNumber = 1;
+        char locationLetter = 'A';
+        int locationNumber = 1;
         //initialize each element in arrayOfLocations
         for(int i = 0; i < maxVendingSize; i++){
             //this assigns a string to each location parameter
@@ -39,7 +35,7 @@ public class VendingMachine {
                 locationLetter++;
                 locationNumber = 1;
             }
-            location = "" + locationLetter + locationNumber;
+            String location = "" + locationLetter + locationNumber;
             arrayOfLocations.add(new ProductLocation(location));
             locationNumber++;
         }
@@ -62,8 +58,10 @@ public class VendingMachine {
         vendingMachineMenu.displayMenu();
     }
 
+    /**
+     * Overloaded method called from the VendingGUI class
+     */
     public void powerOn() throws FileNotFoundException {
-        System.out.println("Vending machine is powered on");
         poweredOn = true;
         //loads all products
         loadProducts();
@@ -92,11 +90,10 @@ public class VendingMachine {
      * Loads products from Products.dat into the vending machine
      */
     private void loadProducts() throws FileNotFoundException{
-        String pattern = "^[A-Za-z.]+,\\d\\.\\d\\d?,[A-Da-d][1-4],\\d?\\d$";//????????????????????//
+        String pattern = "^[A-Za-z .-]+,\\d\\.\\d\\d?,[A-Da-d][1-4],\\d?\\d$";//????????????????????//
         //create a String arrayList and assign it the return from loadFile()
         List<String> inputFiles;
-//        inputFiles = productsFileInput.loadFile();
-        inputFiles = FileInput2.loadFile("Products.txt");
+        inputFiles = FileInput.loadFile("Products.dat");
         String[] currentFile;
 
         //break up each String element on the "," and add a new product
@@ -131,7 +128,7 @@ public class VendingMachine {
                 productsToSave.add(productLocation.getProductArrayList().get(0).toString() + "," + productLocation.getQuantity());
             }
         }
-        FileOutput.saveFile("Products.txt", productsToSave);
+        FileOutput.saveFile("Products.dat", productsToSave);
     }
 
 
